@@ -17,21 +17,27 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: Kotlin (latest stable)  
+**Primary Dependencies**: Jetpack Compose, Koin, Retrofit, Room, Coil, Paging 3, Navigation Compose  
+**Storage**: Room (local SQLite database)  
+**Testing**: JUnit, MockK, MockWebServer, Compose Testing API, KoinTest  
+**Target Platform**: Android (minSdk per project config)
+**Project Type**: android-app (modular)  
+**Performance Goals**: Cold start < 3s, 60fps UI, smooth scrolling for large lists  
+**Constraints**: Offline-first, mid-tier device support, WCAG AA accessibility  
+**Scale/Scope**: Pokedex app with Pokemon list, detail, search, and type browsing features
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] **Feature-First Modularity**: Does this feature belong in its own `:feature:<name>` module, or extend an existing one? No cross-feature dependencies introduced.
+- [ ] **MVVM + Clean Architecture**: Presentation (Compose + ViewModel), Domain (UseCases), and Data (Repository) layers are separated. ViewModel uses `SavedStateHandle` and exposes `StateFlow`/`SharedFlow`.
+- [ ] **Compose-First UI**: All UI is `@Composable` functions. No XML layouts. Navigation uses Navigation Compose with type-safe routes. Images use Coil `AsyncImage`.
+- [ ] **Test-Guided Development**: Unit tests for ViewModels, UseCases, and Repositories included. UI tests for critical paths. Minimum 70% branch coverage on domain/data layers.
+- [ ] **Offline-First Data**: Room is source of truth. Repository serves cached data first, then refreshes from network. Paging 3 used for paginated lists.
+- [ ] **Material 3 Design System**: All components use M3 (`Scaffold`, `TopAppBar`, `Card`, `Chip`, etc.). Spacing uses M3 tokens. Dark mode supported. WCAG AA contrast met.
+- [ ] **Performance & Memory**: Cold start < 3s. Coroutines scoped to `viewModelScope`/`lifecycleScope`. `LazyColumn` for lists. Coil for images with caching. OkHttp pooling + GZIP enabled.
 
 ## Project Structure
 
@@ -48,51 +54,30 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+app/                                    # Entry point module
+├── feature:pokemon-list/               # Pokemon list screen
+│   ├── src/main/java/.../presentation/ # Composables + ViewModel
+│   ├── src/main/java/.../domain/       # UseCases
+│   └── src/main/java/.../data/         # Repository
+├── feature:pokemon-detail/             # Pokemon detail screen
+├── feature:search/                     # Search feature
+├── core:ui/                            # Shared UI utilities
+├── core:data/                          # Shared data (Retrofit, Room, Koin modules)
+├── core:designsystem/                  # M3 theme, tokens, shared components
+├── core:navigation/                    # Navigation graph, route definitions
+└── core:testing/                       # Shared test utilities
 
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── unit/                               # JUnit tests for ViewModels, UseCases, Repositories
+├── ui/                                 # Compose UI tests
+└── integration/                        # Repository integration tests
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Android modular architecture with feature modules (`:feature:<name>`)
+and core shared modules (`:core:<name>`). Each feature module follows MVVM + Clean Architecture
+with Presentation, Domain, and Data layers. The `:app` module is the sole entry point.
 
 ## Complexity Tracking
 

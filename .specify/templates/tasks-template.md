@@ -20,10 +20,13 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Android modular app**: Feature modules at `feature:<name>/src/main/java/...`, core modules at `core:<name>/src/main/java/...`
+- **Presentation layer**: `feature:<name>/.../presentation/` (Composables + ViewModel)
+- **Domain layer**: `feature:<name>/.../domain/` (UseCases)
+- **Data layer**: `feature:<name>/.../data/` (Repository, DTOs, mappers)
+- **Tests**: `feature:<name>/src/test/` (unit), `feature:<name>/src/androidTest/` (instrumented)
+- **Core modules**: `core:ui/`, `core:data/`, `core:designsystem/`, `core:navigation/`, `core:testing/`
+- Paths shown below assume Android modular structure — adjust based on plan.md
 
 <!-- 
   ============================================================================
