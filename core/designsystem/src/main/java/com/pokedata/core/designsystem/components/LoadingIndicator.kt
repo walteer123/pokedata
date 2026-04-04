@@ -8,7 +8,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.pokedata.core.designsystem.theme.PokedexTheme
 
 @Composable
 fun LoadingIndicator(
@@ -25,5 +27,14 @@ fun LoadingIndicator(
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
             strokeWidth = 4.dp
         )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(showBackground = true, backgroundColor = 0xFF201A19, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun LoadingIndicatorPreview() {
+    PokedexTheme {
+        LoadingIndicator()
     }
 }

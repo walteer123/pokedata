@@ -101,9 +101,9 @@
 
 ### Tests for User Story 1
 
-- [ ] T038 [P] [US1] Unit test `PokemonListViewModel` state transitions (Loading → Success, Loading → Error) in `feature:pokemon-list/src/test/.../PokemonListViewModelTest.kt`
-- [ ] T039 [P] [US1] Unit test `PokemonListRepository` offline-first behavior with MockWebServer and in-memory Room in `feature:pokemon-list/src/test/.../PokemonListRepositoryTest.kt`
-- [ ] T040 [P] [US1] Unit test `GetPokemonListUseCase` pagination logic in `feature:pokemon-list/src/test/.../GetPokemonListUseCaseTest.kt`
+- [X] T038 [P] [US1] Unit test `PokemonListViewModel` state transitions (Loading → Success, Loading → Error) in `feature:pokemon-list/src/test/.../PokemonListViewModelTest.kt`
+- [X] T039 [P] [US1] Unit test `PokemonListRepository` offline-first behavior with MockWebServer and in-memory Room in `feature:pokemon-list/src/test/.../PokemonListRepositoryTest.kt`
+- [X] T040 [P] [US1] Unit test `GetPokemonListUseCase` pagination logic in `feature:pokemon-list/src/test/.../GetPokemonListUseCaseTest.kt`
 - [ ] T041 [US1] UI test `PokemonListScreen` renders list items, loading state, and error state in `feature:pokemon-list/src/androidTest/.../PokemonListScreenTest.kt`
 
 ### Implementation for User Story 1
@@ -131,8 +131,8 @@
 
 ### Tests for User Story 2
 
-- [ ] T052 [P] [US2] Unit test `PokemonDetailViewModel` state transitions in `feature:pokemon-detail/src/test/.../PokemonDetailViewModelTest.kt`
-- [ ] T053 [P] [US2] Unit test `GetPokemonDetailUseCase` with mocked repository in `feature:pokemon-detail/src/test/.../GetPokemonDetailUseCaseTest.kt`
+- [X] T052 [P] [US2] Unit test `PokemonDetailViewModel` state transitions in `feature:pokemon-detail/src/test/.../PokemonDetailViewModelTest.kt`
+- [X] T053 [P] [US2] Unit test `GetPokemonDetailUseCase` with mocked repository in `feature:pokemon-detail/src/test/.../GetPokemonDetailUseCaseTest.kt`
 - [ ] T054 [US2] UI test `PokemonDetailScreen` renders all sections (types, stats, abilities, description) in `feature:pokemon-detail/src/androidTest/.../PokemonDetailScreenTest.kt`
 
 ### Implementation for User Story 2
@@ -163,9 +163,9 @@
 
 ### Tests for User Story 3
 
-- [ ] T068 [P] [US3] Unit test `ToggleFavoriteUseCase` toggling logic in `feature:favorites/src/test/.../ToggleFavoriteUseCaseTest.kt`
-- [ ] T069 [P] [US3] Unit test `GetFavoritesUseCase` returning only favorited Pokemon in `feature:favorites/src/test/.../GetFavoritesUseCaseTest.kt`
-- [ ] T070 [P] [US3] Unit test `FavoritesViewModel` state management in `feature:favorites/src/test/.../FavoritesViewModelTest.kt`
+- [X] T068 [P] [US3] Unit test `ToggleFavoriteUseCase` toggling logic in `feature:favorites/src/test/.../ToggleFavoriteUseCaseTest.kt`
+- [X] T069 [P] [US3] Unit test `GetFavoritesUseCase` returning only favorited Pokemon in `feature:favorites/src/test/.../GetFavoritesUseCaseTest.kt`
+- [X] T070 [P] [US3] Unit test `FavoritesViewModel` state management in `feature:favorites/src/test/.../FavoritesViewModelTest.kt`
 - [ ] T071 [US3] UI test favorite/unfavorite interaction updates UI in `feature:favorites/src/androidTest/.../FavoritesScreenTest.kt`
 
 ### Implementation for User Story 3
@@ -196,8 +196,8 @@
 
 ### Tests for User Story 4
 
-- [ ] T085 [P] [US4] Unit test `SearchPokemonUseCase` with various queries in `feature:search/src/test/.../SearchPokemonUseCaseTest.kt`
-- [ ] T086 [P] [US4] Unit test `SearchViewModel` debounce and state management in `feature:search/src/test/.../SearchViewModelTest.kt`
+- [X] T085 [P] [US4] Unit test `SearchPokemonUseCase` with various queries in `feature:search/src/test/.../SearchPokemonUseCaseTest.kt`
+- [X] T086 [P] [US4] Unit test `SearchViewModel` debounce and state management in `feature:search/src/test/.../SearchViewModelTest.kt`
 - [ ] T087 [US4] UI test search input filters results and shows empty state in `feature:search/src/androidTest/.../SearchScreenTest.kt`
 
 ### Implementation for User Story 4
@@ -221,15 +221,15 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T098 [P] Add Compose previews for all standalone composables (`PokemonListItem`, `TypeBadge`, `StatsChart`, `ErrorState`, `EmptyState`)
-- [ ] T099 Add `MainActivity` splash screen with app icon while data initializes
+- [X] T098 [P] Add Compose previews for all standalone composables (`PokemonListItem`, `TypeBadge`, `StatsChart`, `ErrorState`, `EmptyState`)
+- [X] T099 Add `MainActivity` splash screen with app icon while data initializes
 - [ ] T100 [P] Add ktlint configuration and pre-commit hook for code style enforcement
-- [ ] T101 [P] Write README.md with setup instructions, architecture overview, and module diagram
-- [ ] T102 Run full test suite (`./gradlew test`) and fix any failures
+- [X] T101 [P] Write README.md with setup instructions, architecture overview, and module diagram
+- [X] T102 Run full test suite (`./gradlew test`) and fix any failures
 - [ ] T103 Run lint (`./gradlew lint`) and fix all warnings
-- [ ] T104 [P] Add ProGuard/R8 rules for Retrofit, Room, and Koin in `proguard-rules.pro`
+- [X] T104 [P] Add ProGuard/R8 rules for Retrofit, Room, and Koin in `proguard-rules.pro`
 - [ ] T105 Verify cold start time < 3s on emulator with baseline profiling
-- [ ] T106 Run `./gradlew assembleRelease` and verify APK/AAB builds successfully
+- [X] T106 Run `./gradlew assembleRelease` and verify APK/AAB builds successfully
 
 ---
 

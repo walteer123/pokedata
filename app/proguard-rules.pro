@@ -32,7 +32,18 @@
 # Room
 -keep class * extends androidx.room.RoomDatabase
 -dontwarn androidx.room.paging.**
+-keep @androidx.room.Entity class *
+-dontnote androidx.room.RoomInfo
 
 # Koin
 -keep class org.koin.** { *; }
 -keep class * extends org.koin.core.scope.Scope { *; }
+
+# Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandlerImpl {}
+
+# Models & DTOs
+-keep class com.pokedata.core.data.model.** { *; }
+-keep class com.pokedata.core.data.remote.dto.** { *; }
+-keep class com.pokedata.core.data.local.entity.** { *; }
