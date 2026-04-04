@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PokemonListEmptyState(
+    modifier: Modifier = Modifier,
     title: String = "No Pokemon found",
-    subtitle: String? = "Try refreshing the list",
-    modifier: Modifier = Modifier
+    subtitle: String? = "Try refreshing the list"
 ) {
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),

@@ -223,12 +223,12 @@
 
 - [X] T098 [P] Add Compose previews for all standalone composables (`PokemonListItem`, `TypeBadge`, `StatsChart`, `ErrorState`, `EmptyState`)
 - [X] T099 Add `MainActivity` splash screen with app icon while data initializes
-- [ ] T100 [P] Add ktlint configuration and pre-commit hook for code style enforcement
+- [X] T100 [P] Add ktlint configuration and pre-commit hook for code style enforcement
 - [X] T101 [P] Write README.md with setup instructions, architecture overview, and module diagram
 - [X] T102 Run full test suite (`./gradlew test`) and fix any failures
-- [ ] T103 Run lint (`./gradlew lint`) and fix all warnings
+- [X] T103 Run lint (`./gradlew lint`) and fix all warnings
 - [X] T104 [P] Add ProGuard/R8 rules for Retrofit, Room, and Koin in `proguard-rules.pro`
-- [ ] T105 Verify cold start time < 3s on emulator with baseline profiling
+- [X] T105 Verify cold start time < 3s on emulator with baseline profiling
 - [X] T106 Run `./gradlew assembleRelease` and verify APK/AAB builds successfully
 
 ---

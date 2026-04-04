@@ -37,11 +37,11 @@ import com.pokedata.feature.pokemonlist.presentation.components.PokemonListItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonListScreen(
+    modifier: Modifier = Modifier,
     onPokemonClick: (Int) -> Unit,
     onSearchClick: () -> Unit,
     onFavoritesClick: () -> Unit,
-    viewModel: PokemonListViewModel = org.koin.androidx.compose.koinViewModel(),
-    modifier: Modifier = Modifier
+    viewModel: PokemonListViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pokemon = viewModel.pokemonList.collectAsLazyPagingItems()

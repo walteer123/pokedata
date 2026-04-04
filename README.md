@@ -64,6 +64,20 @@ app/
 ./gradlew assembleRelease
 ```
 
+### Code Style
+
+This project uses [ktlint](https://github.com/JLLeitschuh/ktlint-gradle) for Kotlin code style enforcement.
+
+```bash
+# Check code style
+./gradlew ktlintCheck
+
+# Auto-format code
+./gradlew ktlintFormat
+```
+
+A pre-commit hook is configured to run `ktlintCheck` automatically before each commit.
+
 ### Module Dependencies
 
 ```
@@ -71,6 +85,20 @@ app/
 :feature:* → :core:data, :core:designsystem, :core:ui, :core:navigation
 :core:data → Room, Retrofit, OkHttp
 ```
+
+### Baseline Profiles
+
+This project supports Baseline Profiles to improve cold start time and runtime performance.
+
+```bash
+# Generate baseline profile (requires emulator or physical device)
+./gradlew :app:generateBaselineProfile
+
+# Build release APK with baseline profile embedded
+./gradlew assembleRelease
+```
+
+The baseline profile is automatically merged into the release build and optimized with DEX layout optimization.
 
 ## License
 

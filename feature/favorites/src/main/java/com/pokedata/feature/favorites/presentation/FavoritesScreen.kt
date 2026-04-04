@@ -35,10 +35,10 @@ import com.pokedata.core.ui.extensions.capitalizeFirst
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(
+    modifier: Modifier = Modifier,
     onPokemonClick: (Int) -> Unit,
     onBackClick: () -> Unit,
-    viewModel: FavoritesViewModel = org.koin.androidx.compose.koinViewModel(),
-    modifier: Modifier = Modifier
+    viewModel: FavoritesViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

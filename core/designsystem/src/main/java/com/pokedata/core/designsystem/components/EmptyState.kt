@@ -20,9 +20,9 @@ import com.pokedata.core.designsystem.theme.PokedexTheme
 
 @Composable
 fun EmptyState(
+    modifier: Modifier = Modifier,
     title: String,
-    subtitle: String? = null,
-    modifier: Modifier = Modifier
+    subtitle: String? = null
 ) {
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),

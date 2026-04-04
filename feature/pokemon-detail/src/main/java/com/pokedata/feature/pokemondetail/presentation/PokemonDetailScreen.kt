@@ -42,11 +42,11 @@ import com.pokedata.core.ui.extensions.formatWeight
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonDetailScreen(
+    modifier: Modifier = Modifier,
     pokemonId: Int,
     onBackClick: () -> Unit,
     onFavoriteToggle: () -> Unit,
-    viewModel: PokemonDetailViewModel = org.koin.androidx.compose.koinViewModel(parameters = { org.koin.core.parameter.parametersOf(pokemonId) }),
-    modifier: Modifier = Modifier
+    viewModel: PokemonDetailViewModel = org.koin.androidx.compose.koinViewModel(parameters = { org.koin.core.parameter.parametersOf(pokemonId) })
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -86,7 +86,7 @@ fun PokemonDetailScreen(
                 message = uiState.error!!,
                 onRetry = { viewModel.reload() }
             )
-            uiState.pokemon != null -> PokemonDetailContent(uiState.pokemon!!)
+            uiState.pokemon != null -> PokemonDetailContent(uiState.pokemon!!, paddingValues)
         }
     }
 }
@@ -94,12 +94,14 @@ fun PokemonDetailScreen(
 @Composable
 private fun PokemonDetailContent(
     pokemon: com.pokedata.core.data.model.PokemonDetail,
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(paddingValues)
             .padding(16.dp)
     ) {
         // Artwork
