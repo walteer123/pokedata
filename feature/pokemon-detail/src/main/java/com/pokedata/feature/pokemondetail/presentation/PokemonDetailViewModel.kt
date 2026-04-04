@@ -3,7 +3,7 @@ package com.pokedata.feature.pokemondetail.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pokedata.core.data.model.PokemonDetail
-import com.pokedata.core.data.repository.PokemonRepository
+import com.pokedata.core.data.repository.PokemonRepositoryInterface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +16,7 @@ data class PokemonDetailUiState(
 )
 
 class PokemonDetailViewModel(
-    private val repository: PokemonRepository,
+    private val repository: PokemonRepositoryInterface,
     private val pokemonId: Int
 ) : ViewModel() {
 

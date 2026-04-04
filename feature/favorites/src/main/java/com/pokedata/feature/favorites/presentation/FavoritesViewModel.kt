@@ -3,7 +3,7 @@ package com.pokedata.feature.favorites.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pokedata.core.data.model.PokemonListItem
-import com.pokedata.core.data.repository.PokemonRepository
+import com.pokedata.core.data.repository.PokemonRepositoryInterface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +17,7 @@ data class FavoritesUiState(
 )
 
 class FavoritesViewModel(
-    private val repository: PokemonRepository
+    private val repository: PokemonRepositoryInterface
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FavoritesUiState())

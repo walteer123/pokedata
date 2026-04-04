@@ -1,9 +1,9 @@
 package com.pokedata.feature.favorites.domain
 
-import com.pokedata.core.data.repository.PokemonRepository
+import com.pokedata.core.data.repository.PokemonRepositoryInterface
 
 class RemoveFavoriteUseCase(
-    private val repository: PokemonRepository
+    private val repository: PokemonRepositoryInterface
 ) {
     suspend operator fun invoke(pokemonId: Int) {
         val repository = repository

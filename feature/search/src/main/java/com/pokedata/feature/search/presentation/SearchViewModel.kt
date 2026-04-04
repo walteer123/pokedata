@@ -3,7 +3,7 @@ package com.pokedata.feature.search.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pokedata.core.data.model.PokemonListItem
-import com.pokedata.core.data.repository.PokemonRepository
+import com.pokedata.core.data.repository.PokemonRepositoryInterface
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,7 @@ data class SearchUiState(
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
-    private val repository: PokemonRepository
+    private val repository: PokemonRepositoryInterface
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())

@@ -4,6 +4,7 @@ import android.content.Context
 import com.pokedata.core.data.local.PokemonDatabase
 import com.pokedata.core.data.remote.PokemonApi
 import com.pokedata.core.data.repository.PokemonRepository
+import com.pokedata.core.data.repository.PokemonRepositoryInterface
 import okhttp3.Cache
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -59,7 +60,7 @@ val dataModule = module {
     single { get<PokemonDatabase>().abilityDao() }
     single { get<PokemonDatabase>().baseStatsDao() }
 
-    single {
+    single<PokemonRepositoryInterface> {
         PokemonRepository(
             api = get(),
             pokemonDao = get(),

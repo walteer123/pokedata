@@ -6,7 +6,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.pokedata.core.data.model.PokemonListItem
-import com.pokedata.core.data.repository.PokemonRepository
+import com.pokedata.core.data.repository.PokemonRepositoryInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,7 @@ data class PokemonListUiState(
 )
 
 class PokemonListViewModel(
-    private val repository: PokemonRepository
+    private val repository: PokemonRepositoryInterface
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PokemonListUiState())

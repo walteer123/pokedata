@@ -29,9 +29,9 @@ class PokemonRepository(
     private val pokemonTypeDao: PokemonTypeDao,
     private val abilityDao: AbilityDao,
     private val baseStatsDao: BaseStatsDao
-) {
+) : PokemonRepositoryInterface {
 
-    fun getPokemonList(): Flow<PagingData<PokemonListItem>> {
+    override fun getPokemonList(): Flow<PagingData<PokemonListItem>> {
         return Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
@@ -50,14 +50,14 @@ class PokemonRepository(
         }
     }
 
-    suspend fun fetchInitialPokemonList() = withContext(Dispatchers.IO) {
+    override suspend fun fetchInitialPokemonList() = withContext(Dispatchers.IO) {
         val count = pokemonDao.getPokemonCount()
         if (count == 0) {
             fetchPage(offset = 0, limit = PAGE_SIZE * 5)
         }
     }
 
-    suspend fun refreshPokemonList() = withContext(Dispatchers.IO) {
+    override suspend fun refreshPokemonList() = withContext(Dispatchers.IO) {
         fetchPage(offset = 0, limit = PAGE_SIZE * 5)
     }
 
@@ -73,11 +73,11 @@ class PokemonRepository(
         pokemonDao.insertPokemonList(entities)
     }
 
-    suspend fun fetchAndCachePokemonList(offset: Int, limit: Int) = withContext(Dispatchers.IO) {
+    override suspend fun fetchAndCachePokemonList(offset: Int, limit: Int) = withContext(Dispatchers.IO) {
         fetchPage(offset, limit)
     }
 
-    suspend fun getPokemonDetail(id: Int): PokemonDetail = withContext(Dispatchers.IO) {
+    override suspend fun getPokemonDetail(id: Int): PokemonDetail = withContext(Dispatchers.IO) {
         val cached = pokemonDao.getPokemonById(id)
         val needsRefresh = cached == null || isStale(cached.lastUpdated)
 
@@ -159,12 +159,12 @@ class PokemonRepository(
         )
     }
 
-    suspend fun toggleFavorite(id: Int) = withContext(Dispatchers.IO) {
+    override suspend fun toggleFavorite(id: Int) = withContext(Dispatchers.IO) {
         val entity = pokemonDao.getPokemonById(id) ?: return@withContext
         pokemonDao.updateFavoriteStatus(id, !entity.isFavorite)
     }
 
-    suspend fun searchPokemon(query: String): List<PokemonListItem> = withContext(Dispatchers.IO) {
+    override suspend fun searchPokemon(query: String): List<PokemonListItem> = withContext(Dispatchers.IO) {
         val queryInt = query.toIntOrNull()
         pokemonDao.searchPokemon(query.lowercase(), queryInt).map { entity ->
             PokemonListItem(
@@ -176,7 +176,7 @@ class PokemonRepository(
         }
     }
 
-    fun getFavorites(): Flow<List<PokemonListItem>> {
+    override fun getFavorites(): Flow<List<PokemonListItem>> {
         return kotlinx.coroutines.flow.flow {
             emit(
                 withContext(Dispatchers.IO) {
