@@ -1,5 +1,8 @@
 package com.pokedata.feature.favorites.presentation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,12 +26,14 @@ import com.pokedata.core.designsystem.components.EmptyState
 import com.pokedata.core.designsystem.components.LoadingIndicator
 import com.pokedata.core.designsystem.components.PokemonCard
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun FavoritesScreen(
     modifier: Modifier = Modifier,
-    onPokemonClick: (Int) -> Unit,
+    onPokemonClick: (Int, String, String) -> Unit,
     onBackClick: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: FavoritesViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,16 +76,22 @@ fun FavoritesScreen(
                     LazyColumn {
                         items(uiState.favorites.size) { index ->
                             val pokemon = uiState.favorites[index]
-                            PokemonCard(
-                                id = pokemon.id,
-                                name = pokemon.name,
-                                number = pokemon.id,
-                                spriteUrl = pokemon.spriteUrl,
-                                isFavorite = true,
-                                onClick = onPokemonClick,
-                                onFavoriteToggle = { id -> viewModel.removeFavorite(id) },
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                            )
+                            with(sharedTransitionScope) {
+                                PokemonCard(
+                                    id = pokemon.id,
+                                    name = pokemon.name,
+                                    number = pokemon.id,
+                                    spriteUrl = pokemon.spriteUrl,
+                                    isFavorite = true,
+                                    onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
+                                    onFavoriteToggle = { id -> viewModel.removeFavorite(id) },
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                    imageModifier = Modifier.sharedBounds(
+                                        rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                                        animatedVisibilityScope = animatedVisibilityScope
+                                    )
+                                )
+                            }
                         }
                     }
                 }

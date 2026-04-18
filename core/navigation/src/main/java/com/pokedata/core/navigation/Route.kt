@@ -13,7 +13,11 @@ sealed class Route {
 
     @Serializable
     @SerialName("pokemon_detail")
-    data class PokemonDetail(val pokemonId: Int) : Route()
+    data class PokemonDetail(
+        val pokemonId: Int,
+        val spriteUrl: String = "",
+        val name: String = ""
+    ) : Route()
 
     @Serializable
     @SerialName("search")

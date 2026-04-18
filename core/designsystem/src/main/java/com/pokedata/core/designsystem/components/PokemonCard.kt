@@ -34,7 +34,8 @@ fun PokemonCard(
     isFavorite: Boolean,
     onClick: (Int) -> Unit,
     onFavoriteToggle: ((Int) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    imageModifier: Modifier = Modifier
 ) {
         Card(
             modifier = modifier.clickable { onClick(id) },
@@ -47,7 +48,7 @@ fun PokemonCard(
                 AsyncImage(
                     model = spriteUrl,
                     contentDescription = null,
-                    modifier = Modifier.size(80.dp)
+                    modifier = Modifier.size(80.dp).then(imageModifier)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {

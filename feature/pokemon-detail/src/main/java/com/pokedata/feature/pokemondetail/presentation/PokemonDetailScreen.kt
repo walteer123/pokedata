@@ -1,5 +1,8 @@
 package com.pokedata.feature.pokemondetail.presentation
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.pokedata.core.designsystem.components.ErrorState
@@ -39,13 +43,17 @@ import com.pokedata.core.ui.extensions.capitalizeFirst
 import com.pokedata.core.ui.extensions.formatHeight
 import com.pokedata.core.ui.extensions.formatWeight
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun PokemonDetailScreen(
     modifier: Modifier = Modifier,
     pokemonId: Int,
+    spriteUrl: String = "",
+    pokemonName: String = "",
     onBackClick: () -> Unit,
     onFavoriteToggle: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: PokemonDetailViewModel = org.koin.androidx.compose.koinViewModel(parameters = { org.koin.core.parameter.parametersOf(pokemonId) })
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -55,17 +63,20 @@ fun PokemonDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    uiState.pokemon?.let { pokemon ->
+                    val titleText = uiState.pokemon?.name ?: pokemonName
+                    if (titleText.isNotEmpty()) {
                         Text(
-                            text = pokemon.name.capitalizeFirst(),
+                            text = titleText.capitalizeFirst(),
                             style = MaterialTheme.typography.titleLarge,
                             maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis
                         )
-                    } ?: Text(
-                        text = "Pokemon Detail",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    } else {
+                        Text(
+                            text = "Pokemon Detail",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -100,17 +111,28 @@ fun PokemonDetailScreen(
                 message = uiState.error!!,
                 onRetry = { viewModel.reload() }
             )
-            uiState.pokemon != null -> PokemonDetailContent(uiState.pokemon!!, paddingValues)
+            uiState.pokemon != null -> PokemonDetailContent(
+                pokemon = uiState.pokemon!!,
+                spriteUrl = spriteUrl,
+                paddingValues = paddingValues,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PokemonDetailContent(
     pokemon: com.pokedata.core.data.model.PokemonDetail,
+    spriteUrl: String,
     paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier
 ) {
+    with(sharedTransitionScope) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -120,11 +142,15 @@ private fun PokemonDetailContent(
     ) {
         // Artwork
         AsyncImage(
-            model = pokemon.artworkUrl ?: pokemon.spriteUrl,
+            model = pokemon.artworkUrl ?: spriteUrl,
             contentDescription = pokemon.name,
             modifier = Modifier
                 .size(200.dp)
                 .align(Alignment.CenterHorizontally)
+                .sharedBounds(
+                    rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -212,5 +238,6 @@ private fun PokemonDetailContent(
                 Spacer(modifier = Modifier.height(4.dp))
             }
         }
+    }
     }
 }

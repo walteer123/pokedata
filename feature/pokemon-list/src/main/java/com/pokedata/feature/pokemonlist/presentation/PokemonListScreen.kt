@@ -1,5 +1,8 @@
 package com.pokedata.feature.pokemonlist.presentation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,13 +39,15 @@ import com.pokedata.core.designsystem.components.ErrorState
 import com.pokedata.core.designsystem.components.LoadingIndicator
 import com.pokedata.core.designsystem.components.PokemonCard
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun PokemonListScreen(
     modifier: Modifier = Modifier,
-    onPokemonClick: (Int) -> Unit,
+    onPokemonClick: (Int, String, String) -> Unit,
     onSearchClick: () -> Unit,
     onFavoritesClick: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: PokemonListViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -100,7 +105,9 @@ fun PokemonListScreen(
                         isRefreshing = uiState.isRefreshing,
                         onRefresh = viewModel::refresh,
                         onPokemonClick = onPokemonClick,
-                        onFavoriteToggle = viewModel::toggleFavorite
+                        onFavoriteToggle = viewModel::toggleFavorite,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope
                     )
                 }
             }
@@ -120,14 +127,16 @@ fun PokemonListScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PokemonListContent(
     pokemon: LazyPagingItems<PokemonListItem>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onPokemonClick: (Int) -> Unit,
+    onPokemonClick: (Int, String, String) -> Unit,
     onFavoriteToggle: (Int) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
@@ -155,16 +164,22 @@ private fun PokemonListContent(
             items(count = pokemon.itemCount) { index ->
                 val pokemonItem = pokemon[index]
                 if (pokemonItem != null) {
-                    PokemonCard(
-                        id = pokemonItem.id,
-                        name = pokemonItem.name,
-                        number = pokemonItem.id,
-                        spriteUrl = pokemonItem.spriteUrl,
-                        isFavorite = pokemonItem.isFavorite,
-                        onClick = onPokemonClick,
-                        onFavoriteToggle = onFavoriteToggle,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
+                    with(sharedTransitionScope) {
+                        PokemonCard(
+                            id = pokemonItem.id,
+                            name = pokemonItem.name,
+                            number = pokemonItem.id,
+                            spriteUrl = pokemonItem.spriteUrl,
+                            isFavorite = pokemonItem.isFavorite,
+                            onClick = { onPokemonClick(pokemonItem.id, pokemonItem.spriteUrl ?: "", pokemonItem.name) },
+                            onFavoriteToggle = onFavoriteToggle,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            imageModifier = Modifier.sharedBounds(
+                                rememberSharedContentState(key = "pokemon-image-${pokemonItem.id}"),
+                                animatedVisibilityScope = animatedVisibilityScope
+                            )
+                        )
+                    }
                 }
             }
 

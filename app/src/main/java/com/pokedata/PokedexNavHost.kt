@@ -1,7 +1,10 @@
 package com.pokedata
 
-import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,6 +26,7 @@ import com.pokedata.feature.pokemondetail.presentation.PokemonDetailScreen
 import com.pokedata.feature.pokemonlist.presentation.PokemonListScreen
 import com.pokedata.feature.search.presentation.SearchScreen
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PokedexNavHost(
     navController: NavHostController
@@ -49,136 +53,128 @@ fun PokedexNavHost(
             else -> Route.PokemonList
         }
 
-    AppNavHost(
-        navController = navController,
-        startDestination = Route.PokemonList
-    ) {
-        composable<Route.PokemonList> {
-            Scaffold(
-                bottomBar = {
-                    if (showBottomNav) {
-                        ModernBottomNav(
-                            currentRoute = currentRoute,
-                            onNavigate = { route ->
-                                navController.navigate(route) {
-                                    popUpTo<Route.PokemonList> { inclusive = false }
-                                    launchSingleTop = true
+    SharedTransitionLayout {
+        AppNavHost(
+            navController = navController,
+            startDestination = Route.PokemonList
+        ) {
+            composable<Route.PokemonList> {
+                Scaffold(
+                    bottomBar = {
+                        if (showBottomNav) {
+                            ModernBottomNav(
+                                currentRoute = currentRoute,
+                                onNavigate = { route ->
+                                    navController.navigate(route) {
+                                        popUpTo<Route.PokemonList> { inclusive = false }
+                                        launchSingleTop = true
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
-                }
-            ) { paddingValues ->
-                Surface(
-                    modifier = Modifier.padding(paddingValues),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    PokemonListScreen(
-                        onPokemonClick = { pokemonId ->
-                            navController.navigate(Route.PokemonDetail(pokemonId))
-                        },
-                        onSearchClick = {},
-                        onFavoritesClick = {}
-                    )
-                }
-            }
-        }
-
-        composable<Route.PokemonDetail>(
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = tween(300)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = tween(300)
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = tween(300)
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = tween(300)
-                )
-            }
-        ) { backStackEntry ->
-            val detail = backStackEntry.toRoute<Route.PokemonDetail>()
-            PokemonDetailScreen(
-                pokemonId = detail.pokemonId,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onFavoriteToggle = {}
-            )
-        }
-
-        composable<Route.Search> {
-            Scaffold(
-                bottomBar = {
-                    if (showBottomNav) {
-                        ModernBottomNav(
-                            currentRoute = currentRoute,
-                            onNavigate = { route ->
-                                navController.navigate(route) {
-                                    popUpTo<Route.PokemonList> { inclusive = false }
-                                    launchSingleTop = true
-                                }
-                            }
-                        )
-                    }
-                }
-            ) { paddingValues ->
-                Surface(
-                    modifier = Modifier.padding(paddingValues),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        SearchScreen(
-                            onPokemonClick = { pokemonId ->
-                                navController.navigate(Route.PokemonDetail(pokemonId))
+                ) { paddingValues ->
+                    Surface(
+                        modifier = Modifier.padding(paddingValues),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        PokemonListScreen(
+                            onPokemonClick = { pokemonId, spriteUrl, name ->
+                                navController.navigate(Route.PokemonDetail(pokemonId, spriteUrl, name))
                             },
-                            onBackClick = {}
+                            onSearchClick = {},
+                            onFavoritesClick = {},
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedVisibilityScope = this@composable
                         )
                     }
                 }
             }
-        }
 
-        composable<Route.Favorites> {
-            Scaffold(
-                bottomBar = {
-                    if (showBottomNav) {
-                        ModernBottomNav(
-                            currentRoute = currentRoute,
-                            onNavigate = { route ->
-                                navController.navigate(route) {
-                                    popUpTo<Route.PokemonList> { inclusive = false }
-                                    launchSingleTop = true
+            composable<Route.PokemonDetail>(
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) },
+                popEnterTransition = { fadeIn(tween(300)) },
+                popExitTransition = { fadeOut(tween(300)) }
+            ) { backStackEntry ->
+                val detail = backStackEntry.toRoute<Route.PokemonDetail>()
+                PokemonDetailScreen(
+                    pokemonId = detail.pokemonId,
+                    spriteUrl = detail.spriteUrl,
+                    pokemonName = detail.name,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onFavoriteToggle = {},
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@composable
+                )
+            }
+
+            composable<Route.Search> {
+                Scaffold(
+                    bottomBar = {
+                        if (showBottomNav) {
+                            ModernBottomNav(
+                                currentRoute = currentRoute,
+                                onNavigate = { route ->
+                                    navController.navigate(route) {
+                                        popUpTo<Route.PokemonList> { inclusive = false }
+                                        launchSingleTop = true
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
+                    }
+                ) { paddingValues ->
+                    Surface(
+                        modifier = Modifier.padding(paddingValues),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            SearchScreen(
+                                onPokemonClick = { pokemonId, spriteUrl, name ->
+                                    navController.navigate(Route.PokemonDetail(pokemonId, spriteUrl, name))
+                                },
+                                onBackClick = {},
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                animatedVisibilityScope = this@composable
+                            )
+                        }
                     }
                 }
-            ) { paddingValues ->
-                Surface(
-                    modifier = Modifier.padding(paddingValues),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        FavoritesScreen(
-                            onPokemonClick = { pokemonId ->
-                                navController.navigate(Route.PokemonDetail(pokemonId))
-                            },
-                            onBackClick = {}
-                        )
+            }
+
+            composable<Route.Favorites> {
+                Scaffold(
+                    bottomBar = {
+                        if (showBottomNav) {
+                            ModernBottomNav(
+                                currentRoute = currentRoute,
+                                onNavigate = { route ->
+                                    navController.navigate(route) {
+                                        popUpTo<Route.PokemonList> { inclusive = false }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            )
+                        }
+                    }
+                ) { paddingValues ->
+                    Surface(
+                        modifier = Modifier.padding(paddingValues),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            FavoritesScreen(
+                                onPokemonClick = { pokemonId, spriteUrl, name ->
+                                    navController.navigate(Route.PokemonDetail(pokemonId, spriteUrl, name))
+                                },
+                                onBackClick = {},
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                animatedVisibilityScope = this@composable
+                            )
+                        }
                     }
                 }
             }
