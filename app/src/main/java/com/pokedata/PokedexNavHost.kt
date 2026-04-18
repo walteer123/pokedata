@@ -37,9 +37,15 @@ fun PokedexNavHost(
 
     val currentRoute: Route =
         when {
-            currentDestination?.startsWith("com.pokedata.core.navigation.Route.PokemonList") == true -> Route.PokemonList
-            currentDestination?.startsWith("com.pokedata.core.navigation.Route.Search") == true -> Route.Search
-            currentDestination?.startsWith("com.pokedata.core.navigation.Route.Favorites") == true -> Route.Favorites
+            currentDestination?.startsWith(
+                "com.pokedata.core.navigation.Route.PokemonList"
+            ) == true -> Route.PokemonList
+            currentDestination?.startsWith(
+                "com.pokedata.core.navigation.Route.Search"
+            ) == true -> Route.Search
+            currentDestination?.startsWith(
+                "com.pokedata.core.navigation.Route.Favorites"
+            ) == true -> Route.Favorites
             else -> Route.PokemonList
         }
 
