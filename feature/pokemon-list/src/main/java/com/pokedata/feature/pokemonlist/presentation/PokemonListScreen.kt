@@ -14,6 +14,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -32,7 +34,7 @@ import com.pokedata.core.data.model.PokemonListItem
 import com.pokedata.core.designsystem.components.EmptyState
 import com.pokedata.core.designsystem.components.ErrorState
 import com.pokedata.core.designsystem.components.LoadingIndicator
-import com.pokedata.feature.pokemonlist.presentation.components.PokemonListItem
+import com.pokedata.core.designsystem.components.PokemonCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +52,19 @@ fun PokemonListScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Pokedex") },
+                title = { 
+                    Text(
+                        text = "Pokedex",
+                        style = androidx.compose.material3.MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    ) 
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                    titleContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+                ),
                 actions = {
                     IconButton(onClick = onSearchClick) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -98,7 +112,8 @@ fun PokemonListScreen(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .padding(16.dp),
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -140,13 +155,15 @@ private fun PokemonListContent(
             items(count = pokemon.itemCount) { index ->
                 val pokemonItem = pokemon[index]
                 if (pokemonItem != null) {
-                    PokemonListItem(
+                    PokemonCard(
                         id = pokemonItem.id,
                         name = pokemonItem.name,
+                        number = pokemonItem.id,
                         spriteUrl = pokemonItem.spriteUrl,
                         isFavorite = pokemonItem.isFavorite,
                         onClick = onPokemonClick,
-                        onFavoriteToggle = onFavoriteToggle
+                        onFavoriteToggle = onFavoriteToggle,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
                 }
             }

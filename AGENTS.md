@@ -1,8 +1,10 @@
 ﻿# pokedata Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-03
+Auto-generated from all feature plans. Last updated: 2026-04-04
 
 ## Active Technologies
+- Kotlin 2.0.21 + Jetpack Compose (BOM 2025.03.01), Material 3, Koin 3.5.6, Navigation Compose 2.9.0, Coil 2.7.0, Paging 3 (002-update-design-system)
+- No changes — Room database unchanged (002-update-design-system)
 
 - Kotlin 2.0+ + Jetpack Compose (BOM 2024+), Koin 3.5+, Retrofit 2.9+, Room 2.6+, Coil 2.6+, Paging 3, Navigation Compose 1.7+, OkHttp 4.12+, kotlinx.coroutines 1.8+, kotlinx.serialization (001-pokedex-app)
 
@@ -22,6 +24,7 @@ tests/
 Kotlin 2.0+: Follow standard conventions
 
 ## Recent Changes
+- 002-update-design-system: Added Kotlin 2.0.21 + Jetpack Compose (BOM 2025.03.01), Material 3, Koin 3.5.6, Navigation Compose 2.9.0, Coil 2.7.0, Paging 3
 
 - 001-pokedex-app: Added Kotlin 2.0+ + Jetpack Compose (BOM 2024+), Koin 3.5+, Retrofit 2.9+, Room 2.6+, Coil 2.6+, Paging 3, Navigation Compose 1.7+, OkHttp 4.12+, kotlinx.coroutines 1.8+, kotlinx.serialization
 

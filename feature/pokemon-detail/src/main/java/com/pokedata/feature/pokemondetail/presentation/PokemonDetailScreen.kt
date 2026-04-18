@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.pokedata.core.designsystem.components.ErrorState
 import com.pokedata.core.designsystem.components.LoadingIndicator
-import com.pokedata.core.designsystem.theme.PokemonTypeColors
+import com.pokedata.core.designsystem.components.TypeBadge
 import com.pokedata.core.ui.extensions.capitalizeFirst
 import com.pokedata.core.ui.extensions.formatHeight
 import com.pokedata.core.ui.extensions.formatWeight
@@ -56,9 +56,23 @@ fun PokemonDetailScreen(
             TopAppBar(
                 title = {
                     uiState.pokemon?.let { pokemon ->
-                        Text(text = pokemon.name.capitalizeFirst())
-                    } ?: Text(text = "Pokemon Detail")
+                        Text(
+                            text = pokemon.name.capitalizeFirst(),
+                            style = MaterialTheme.typography.titleLarge,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    } ?: Text(
+                        text = "Pokemon Detail",
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -119,7 +133,7 @@ private fun PokemonDetailContent(
         if (pokemon.types.isNotEmpty()) {
             Text(
                 text = "Types",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -150,15 +164,15 @@ private fun PokemonDetailContent(
         // Description
         val description = pokemon.description
         if (!description.isNullOrEmpty()) {
-            Text(text = "About", style = MaterialTheme.typography.titleMedium)
+            Text(text = "About", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = description, style = MaterialTheme.typography.bodyMedium)
+            Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Abilities
         if (pokemon.abilities.isNotEmpty()) {
-            Text(text = "Abilities", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Abilities", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             pokemon.abilities.forEach { ability ->
                 Text(
@@ -171,7 +185,7 @@ private fun PokemonDetailContent(
 
         // Stats
         if (pokemon.stats.isNotEmpty()) {
-            Text(text = "Base Stats", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Base Stats", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             pokemon.stats.forEach { (statName, value) ->
                 Row(
@@ -198,22 +212,5 @@ private fun PokemonDetailContent(
                 Spacer(modifier = Modifier.height(4.dp))
             }
         }
-    }
-}
-
-@Composable
-private fun TypeBadge(
-    typeName: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-    ) {
-        Text(
-            text = typeName.capitalizeFirst(),
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-            color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.labelMedium
-        )
     }
 }

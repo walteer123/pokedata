@@ -2,8 +2,8 @@ package com.pokedata.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light theme colors
-val LightPrimary = Color(0xFFEF4444)
+// Light theme colors - Modern M3 tonal palettes with Pokemon-themed primary red
+val LightPrimary = Color(0xFFB3261E)
 val LightOnPrimary = Color(0xFFFFFFFF)
 val LightPrimaryContainer = Color(0xFFFFDAD5)
 val LightOnPrimaryContainer = Color(0xFF410001)
@@ -17,14 +17,26 @@ val LightTertiaryContainer = Color(0xFFFDE0A6)
 val LightOnTertiaryContainer = Color(0xFF261A00)
 val LightError = Color(0xFFBA1A1A)
 val LightOnError = Color(0xFFFFFFFF)
+val LightErrorContainer = Color(0xFFFFDAD5)
+val LightOnErrorContainer = Color(0xFF410001)
 val LightBackground = Color(0xFFFFFBFF)
 val LightOnBackground = Color(0xFF201A19)
 val LightSurface = Color(0xFFFFFBFF)
 val LightOnSurface = Color(0xFF201A19)
 val LightSurfaceVariant = Color(0xFFF5DDDA)
 val LightOnSurfaceVariant = Color(0xFF534341)
+val LightSurfaceContainerLowest = Color(0xFFFFFFFF)
+val LightSurfaceContainerLow = Color(0xFFFFF8F7)
+val LightSurfaceContainer = Color(0xFFFFF1EE)
+val LightSurfaceContainerHigh = Color(0xFFFFEBE8)
+val LightSurfaceContainerHighest = Color(0xFFFFDAD5)
+val LightOutline = Color(0xFF857370)
+val LightOutlineVariant = Color(0xFFD8C2BF)
+val LightInverseSurface = Color(0xFF362F2E)
+val LightInverseOnSurface = Color(0xFFFBEEEC)
+val LightInversePrimary = Color(0xFFFFB4A9)
 
-// Dark theme colors
+// Dark theme colors - Modern M3 tonal palettes
 val DarkPrimary = Color(0xFFFFB4A9)
 val DarkOnPrimary = Color(0xFF690003)
 val DarkPrimaryContainer = Color(0xFF930006)
@@ -39,12 +51,24 @@ val DarkTertiaryContainer = Color(0xFF57441A)
 val DarkOnTertiaryContainer = Color(0xFFFDE0A6)
 val DarkError = Color(0xFFFFB4AB)
 val DarkOnError = Color(0xFF690005)
+val DarkErrorContainer = Color(0xFF93000A)
+val DarkOnErrorContainer = Color(0xFFFFDAD5)
 val DarkBackground = Color(0xFF201A19)
 val DarkOnBackground = Color(0xFFEDE0DD)
 val DarkSurface = Color(0xFF201A19)
 val DarkOnSurface = Color(0xFFEDE0DD)
 val DarkSurfaceVariant = Color(0xFF534341)
 val DarkOnSurfaceVariant = Color(0xFFD8C2BF)
+val DarkSurfaceContainerLowest = Color(0xFF1B1413)
+val DarkSurfaceContainerLow = Color(0xFF281F1E)
+val DarkSurfaceContainer = Color(0xFF2D2322)
+val DarkSurfaceContainerHigh = Color(0xFF382D2C)
+val DarkSurfaceContainerHighest = Color(0xFF443836)
+val DarkOutline = Color(0xFFA08D8A)
+val DarkOutlineVariant = Color(0xFF534341)
+val DarkInverseSurface = Color(0xFFEDE0DD)
+val DarkInverseOnSurface = Color(0xFF362F2E)
+val DarkInversePrimary = Color(0xFFB3261E)
 
 // Pokemon type colors for display
 object PokemonTypeColors {
@@ -90,4 +114,9 @@ object PokemonTypeColors {
             else -> Normal
         }
     }
+}
+
+fun Color.contrastingTextColor(): Color {
+    val luminance = red * 0.299f + green * 0.587f + blue * 0.114f
+    return if (luminance > 0.5f) Color.Black else Color.White
 }
