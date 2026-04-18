@@ -82,8 +82,18 @@ fun PokedexNavHost(
                             onPokemonClick = { pokemonId, spriteUrl, name ->
                                 navController.navigate(Route.PokemonDetail(pokemonId, spriteUrl, name))
                             },
-                            onSearchClick = {},
-                            onFavoritesClick = {},
+                            onSearchClick = {
+                                navController.navigate(Route.Search) {
+                                    popUpTo<Route.PokemonList> { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onFavoritesClick = {
+                                navController.navigate(Route.Favorites) {
+                                    popUpTo<Route.PokemonList> { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            },
                             sharedTransitionScope = this@SharedTransitionLayout,
                             animatedVisibilityScope = this@composable
                         )
