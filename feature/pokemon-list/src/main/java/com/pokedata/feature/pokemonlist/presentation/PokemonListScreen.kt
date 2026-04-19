@@ -4,6 +4,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,6 +39,8 @@ import com.pokedata.core.designsystem.components.EmptyState
 import com.pokedata.core.designsystem.components.ErrorState
 import com.pokedata.core.designsystem.components.LoadingIndicator
 import com.pokedata.core.designsystem.components.PokemonCard
+import com.pokedata.core.designsystem.components.TypeFilterChips
+import com.pokedata.feature.pokemonlist.presentation.PokemonTypes
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -100,15 +103,23 @@ fun PokemonListScreen(
                     )
                 }
                 else -> {
-                    PokemonListContent(
-                        pokemon = pokemon,
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = viewModel::refresh,
-                        onPokemonClick = onPokemonClick,
-                        onFavoriteToggle = viewModel::toggleFavorite,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope
-                    )
+                    Column {
+                        TypeFilterChips(
+                            types = PokemonTypes,
+                            selectedType = uiState.selectedTypeFilter,
+                            onTypeSelected = viewModel::setTypeFilter,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        PokemonListContent(
+                            pokemon = pokemon,
+                            isRefreshing = uiState.isRefreshing,
+                            onRefresh = viewModel::refresh,
+                            onPokemonClick = onPokemonClick,
+                            onFavoriteToggle = viewModel::toggleFavorite,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
+                    }
                 }
             }
 
@@ -171,6 +182,7 @@ private fun PokemonListContent(
                             number = pokemonItem.id,
                             spriteUrl = pokemonItem.spriteUrl,
                             isFavorite = pokemonItem.isFavorite,
+                            types = pokemonItem.types,
                             onClick = { onPokemonClick(pokemonItem.id, pokemonItem.spriteUrl ?: "", pokemonItem.name) },
                             onFavoriteToggle = onFavoriteToggle,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
