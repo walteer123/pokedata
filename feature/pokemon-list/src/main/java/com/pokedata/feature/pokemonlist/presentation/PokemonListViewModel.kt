@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -19,9 +20,17 @@ import kotlinx.coroutines.launch
 data class PokemonListUiState(
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val selectedTypeFilter: String? = null
 )
 
+val PokemonTypes = listOf(
+    "normal", "fire", "water", "electric", "grass", "ice",
+    "fighting", "poison", "ground", "flying", "psychic", "bug",
+    "rock", "ghost", "dragon", "dark", "steel", "fairy"
+)
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class PokemonListViewModel(
     private val repository: PokemonRepositoryInterface
 ) : ViewModel() {
@@ -29,21 +38,19 @@ class PokemonListViewModel(
     private val _uiState = MutableStateFlow(PokemonListUiState())
     val uiState: StateFlow<PokemonListUiState> = _uiState.asStateFlow()
 
-    private var _pokemonList: Flow<PagingData<PokemonListItem>>? = null
-    val pokemonList: Flow<PagingData<PokemonListItem>>
-        get() {
-            if (_pokemonList == null) {
-                _pokemonList = repository.getPokemonList()
-                    .catch { e ->
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            error = e.message ?: "Failed to load Pokemon"
-                        )
-                    }
-                    .cachedIn(viewModelScope)
-            }
-            return _pokemonList!!
+    private val _typeFilter = MutableStateFlow<String?>(null)
+
+    val pokemonList: Flow<PagingData<PokemonListItem>> = _typeFilter
+        .flatMapLatest { filter ->
+            repository.getPokemonList(typeFilter = filter)
         }
+        .catch { e ->
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                error = e.message ?: "Failed to load Pokemon"
+            )
+        }
+        .cachedIn(viewModelScope)
 
     init {
         loadPokemon()
@@ -87,5 +94,10 @@ class PokemonListViewModel(
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    fun setTypeFilter(type: String?) {
+        _uiState.value = _uiState.value.copy(selectedTypeFilter = type)
+        _typeFilter.value = type
     }
 }
