@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ fun PokemonCard(
     isFavorite: Boolean,
     onClick: (Int) -> Unit,
     onFavoriteToggle: ((Int) -> Unit)? = null,
+    types: List<String> = emptyList(),
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier
 ) {
@@ -60,6 +62,16 @@ fun PokemonCard(
                         text = "#$number",
                         style = MaterialTheme.typography.bodySmall
                     )
+                    if (types.isNotEmpty()) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            types.take(2).forEach { type ->
+                                TypeBadge(typeName = type)
+                            }
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 IconButton(onClick = { onFavoriteToggle?.invoke(id) }) {
