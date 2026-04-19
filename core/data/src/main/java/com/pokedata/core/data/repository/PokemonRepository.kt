@@ -31,20 +31,27 @@ class PokemonRepository(
     private val baseStatsDao: BaseStatsDao
 ) : PokemonRepositoryInterface {
 
-    override fun getPokemonList(): Flow<PagingData<PokemonListItem>> {
+    override fun getPokemonList(typeFilter: String?): Flow<PagingData<PokemonListItem>> {
         return Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { pokemonDao.getPokemonPagingSource() }
+            pagingSourceFactory = {
+                if (typeFilter != null) {
+                    pokemonDao.getPokemonWithTypesByTypePagingSource(typeFilter)
+                } else {
+                    pokemonDao.getPokemonWithTypesPagingSource()
+                }
+            }
         ).flow.map { pagingData ->
-            pagingData.map { entity ->
+            pagingData.map { pokemonWithTypes ->
                 PokemonListItem(
-                    id = entity.id,
-                    name = entity.name,
-                    spriteUrl = entity.spriteUrl,
-                    isFavorite = entity.isFavorite
+                    id = pokemonWithTypes.pokemon.id,
+                    name = pokemonWithTypes.pokemon.name,
+                    spriteUrl = pokemonWithTypes.pokemon.spriteUrl,
+                    isFavorite = pokemonWithTypes.pokemon.isFavorite,
+                    types = pokemonWithTypes.types.map { it.typeName }.sorted()
                 )
             }
         }
@@ -166,12 +173,13 @@ class PokemonRepository(
 
     override suspend fun searchPokemon(query: String): List<PokemonListItem> = withContext(Dispatchers.IO) {
         val queryInt = query.toIntOrNull()
-        pokemonDao.searchPokemon(query.lowercase(), queryInt).map { entity ->
+        pokemonDao.searchPokemonWithTypes(query.lowercase(), queryInt).map { pokemonWithTypes ->
             PokemonListItem(
-                id = entity.id,
-                name = entity.name,
-                spriteUrl = entity.spriteUrl,
-                isFavorite = entity.isFavorite
+                id = pokemonWithTypes.pokemon.id,
+                name = pokemonWithTypes.pokemon.name,
+                spriteUrl = pokemonWithTypes.pokemon.spriteUrl,
+                isFavorite = pokemonWithTypes.pokemon.isFavorite,
+                types = pokemonWithTypes.types.map { it.typeName }.sorted()
             )
         }
     }
@@ -180,12 +188,13 @@ class PokemonRepository(
         return kotlinx.coroutines.flow.flow {
             emit(
                 withContext(Dispatchers.IO) {
-                    pokemonDao.getFavorites().map { entity ->
+                    pokemonDao.getFavoritesWithTypes().map { pokemonWithTypes ->
                         PokemonListItem(
-                            id = entity.id,
-                            name = entity.name,
-                            spriteUrl = entity.spriteUrl,
-                            isFavorite = entity.isFavorite
+                            id = pokemonWithTypes.pokemon.id,
+                            name = pokemonWithTypes.pokemon.name,
+                            spriteUrl = pokemonWithTypes.pokemon.spriteUrl,
+                            isFavorite = pokemonWithTypes.pokemon.isFavorite,
+                            types = pokemonWithTypes.types.map { it.typeName }.sorted()
                         )
                     }
                 }

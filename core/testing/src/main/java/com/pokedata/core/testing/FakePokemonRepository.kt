@@ -20,9 +20,14 @@ class FakePokemonRepository : PokemonRepositoryInterface {
         pokemonDetails[detail.id] = detail
     }
 
-    override fun getPokemonList(): Flow<PagingData<PokemonListItem>> {
+    override fun getPokemonList(typeFilter: String?): Flow<PagingData<PokemonListItem>> {
+        val filteredList = if (typeFilter != null) {
+            pokemonList.filter { it.types.contains(typeFilter.lowercase()) }
+        } else {
+            pokemonList
+        }
         return flow {
-            emit(PagingData.from(pokemonList))
+            emit(PagingData.from(filteredList))
         }
     }
 
