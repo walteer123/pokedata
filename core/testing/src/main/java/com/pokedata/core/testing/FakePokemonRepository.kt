@@ -32,12 +32,15 @@ class FakePokemonRepository : PokemonRepositoryInterface {
     }
 
     override suspend fun fetchInitialPokemonList() {
+        // Fake implementation - não faz nada
     }
 
     override suspend fun refreshPokemonList() {
+        // Fake implementation - não faz nada
     }
 
     override suspend fun fetchAndCachePokemonList(offset: Int, limit: Int) {
+        // Fake implementation - não faz nada
     }
 
     override suspend fun getPokemonDetail(id: Int): PokemonDetail {

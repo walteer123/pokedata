@@ -49,6 +49,9 @@ interface PokemonDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPokemonList(pokemon: List<PokemonEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPokemonListIgnoreConflict(pokemon: List<PokemonEntity>)
+
     @Query("UPDATE pokemon SET is_favorite = :isFavorite WHERE id = :id")
     suspend fun updateFavoriteStatus(id: Int, isFavorite: Boolean)
 

@@ -1,13 +1,16 @@
 package com.pokedata.core.data.repository
 
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.pokedata.core.data.local.PokemonDatabase
 import com.pokedata.core.data.local.dao.AbilityDao
 import com.pokedata.core.data.local.dao.BaseStatsDao
 import com.pokedata.core.data.local.dao.PokemonDao
 import com.pokedata.core.data.local.dao.PokemonTypeDao
+import com.pokedata.core.data.local.dao.RemoteKeyDao
 import com.pokedata.core.data.local.entity.PokemonEntity
 import com.pokedata.core.data.mapper.toAbilityEntities
 import com.pokedata.core.data.mapper.toBaseStatsEntity
@@ -23,20 +26,33 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalPagingApi::class)
 class PokemonRepository(
     private val api: PokemonApi,
+    private val database: PokemonDatabase,
     private val pokemonDao: PokemonDao,
     private val pokemonTypeDao: PokemonTypeDao,
     private val abilityDao: AbilityDao,
-    private val baseStatsDao: BaseStatsDao
+    private val baseStatsDao: BaseStatsDao,
+    private val remoteKeyDao: RemoteKeyDao
 ) : PokemonRepositoryInterface {
 
     override fun getPokemonList(typeFilter: String?): Flow<PagingData<PokemonListItem>> {
+        val remoteMediator = PokemonRemoteMediator(
+            api = api,
+            database = database,
+            pokemonDao = pokemonDao,
+            remoteKeyDao = remoteKeyDao
+        )
         return Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
-                enablePlaceholders = false
+                enablePlaceholders = false,
+                prefetchDistance = PAGE_SIZE / 2, // Pre-fetch quando estiver a 10 itens do final
+                initialLoadSize = PAGE_SIZE * 3, // Carregar 60 itens inicialmente para melhor UX
+                maxSize = PagingConfig.MAX_SIZE_UNBOUNDED // Permitir crescimento ilimitado da lista
             ),
+            remoteMediator = remoteMediator,
             pagingSourceFactory = {
                 if (typeFilter != null) {
                     pokemonDao.getPokemonWithTypesByTypePagingSource(typeFilter)
@@ -57,31 +73,19 @@ class PokemonRepository(
         }
     }
 
-    override suspend fun fetchInitialPokemonList() = withContext(Dispatchers.IO) {
-        val count = pokemonDao.getPokemonCount()
-        if (count == 0) {
-            fetchPage(offset = 0, limit = PAGE_SIZE * 5)
-        }
+    override suspend fun fetchInitialPokemonList() {
+        // Com RemoteMediator, o carregamento inicial é automático
+        // Este método é mantido para compatibilidade
     }
 
-    override suspend fun refreshPokemonList() = withContext(Dispatchers.IO) {
-        fetchPage(offset = 0, limit = PAGE_SIZE * 5)
+    override suspend fun refreshPokemonList() {
+        // Com RemoteMediator, o refresh é automático via Paging library
+        // Este método é mantido para compatibilidade
     }
 
-    private suspend fun fetchPage(offset: Int, limit: Int) {
-        val response = api.getPokemonList(limit = limit, offset = offset)
-        val entities = response.results.map { summary ->
-            val id = extractIdFromUrl(summary.url)
-            summary.toPokemonEntity(
-                id = id,
-                spriteUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png"
-            )
-        }
-        pokemonDao.insertPokemonList(entities)
-    }
-
-    override suspend fun fetchAndCachePokemonList(offset: Int, limit: Int) = withContext(Dispatchers.IO) {
-        fetchPage(offset, limit)
+    override suspend fun fetchAndCachePokemonList(offset: Int, limit: Int) {
+        // Com RemoteMediator, o carregamento paginado é automático
+        // Este método é mantido para compatibilidade
     }
 
     override suspend fun getPokemonDetail(id: Int): PokemonDetail = withContext(Dispatchers.IO) {

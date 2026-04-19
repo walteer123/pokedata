@@ -59,14 +59,17 @@ val dataModule = module {
     single { get<PokemonDatabase>().pokemonTypeDao() }
     single { get<PokemonDatabase>().abilityDao() }
     single { get<PokemonDatabase>().baseStatsDao() }
+    single { get<PokemonDatabase>().remoteKeyDao() }
 
     single<PokemonRepositoryInterface> {
         PokemonRepository(
             api = get(),
+            database = get(),
             pokemonDao = get(),
             pokemonTypeDao = get(),
             abilityDao = get(),
-            baseStatsDao = get()
+            baseStatsDao = get(),
+            remoteKeyDao = get()
         )
     }
 }

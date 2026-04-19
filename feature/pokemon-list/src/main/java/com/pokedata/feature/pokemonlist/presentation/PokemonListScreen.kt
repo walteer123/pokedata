@@ -90,16 +90,14 @@ fun PokemonListScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoading && pokemon.loadState.refresh is LoadState.Loading -> {
+                pokemon.loadState.refresh is LoadState.Loading && pokemon.itemCount == 0 -> {
                     LoadingIndicator()
                 }
-                uiState.error != null && pokemon.itemCount == 0 -> {
+                pokemon.loadState.refresh is LoadState.Error && pokemon.itemCount == 0 -> {
+                    val error = (pokemon.loadState.refresh as LoadState.Error).error
                     ErrorState(
-                        message = uiState.error!!,
-                        onRetry = {
-                            viewModel.clearError()
-                            viewModel.refresh()
-                        }
+                        message = error.message ?: "Failed to load Pokemon",
+                        onRetry = { pokemon.refresh() }
                     )
                 }
                 else -> {
@@ -112,8 +110,8 @@ fun PokemonListScreen(
                         )
                         PokemonListContent(
                             pokemon = pokemon,
-                            isRefreshing = uiState.isRefreshing,
-                            onRefresh = viewModel::refresh,
+                            isRefreshing = pokemon.loadState.refresh is LoadState.Loading,
+                            onRefresh = { pokemon.refresh() },
                             onPokemonClick = onPokemonClick,
                             onFavoriteToggle = viewModel::toggleFavorite,
                             sharedTransitionScope = sharedTransitionScope,
@@ -123,9 +121,10 @@ fun PokemonListScreen(
                 }
             }
 
-            if (uiState.error != null && pokemon.itemCount > 0) {
+            if (pokemon.loadState.refresh is LoadState.Error && pokemon.itemCount > 0) {
+                val error = (pokemon.loadState.refresh as LoadState.Error).error
                 Text(
-                    text = uiState.error!!,
+                    text = error.message ?: "Failed to load Pokemon",
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
@@ -195,15 +194,32 @@ private fun PokemonListContent(
                 }
             }
 
+            // Mostrar indicador de carregamento no final da lista quando estiver carregando mais
             item {
-                when (pokemon.loadState.append) {
+                when (val appendState = pokemon.loadState.append) {
                     is LoadState.Loading -> {
                         LoadingIndicator(modifier = Modifier.padding(16.dp))
                     }
                     is LoadState.Error -> {
-                        // Silently ignore append errors, user can pull to refresh
+                        // Mostrar mensagem de erro e botão de retry
+                        androidx.compose.material3.Text(
+                            text = "Error loading more: ${(appendState.error).message}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                        )
                     }
-                    else -> Unit
+                    else -> {
+                        // Verificar se há mais itens para carregar
+                        if (pokemon.itemCount > 0 && pokemon.loadState.append is LoadState.NotLoading) {
+                            // Se não estamos no fim da paginação, mostrar um spacer para garantir
+                            // que o usuário possa continuar scrollando
+                            androidx.compose.foundation.layout.Spacer(
+                                modifier = Modifier.padding(vertical = 16.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
