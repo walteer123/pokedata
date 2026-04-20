@@ -74,7 +74,10 @@ fun FavoritesScreen(
                 )
                 else -> {
                     LazyColumn {
-                        items(uiState.favorites.size) { index ->
+                        items(
+                            count = uiState.favorites.size,
+                            key = { index -> uiState.favorites[index].id }
+                        ) { index ->
                             val pokemon = uiState.favorites[index]
                             with(sharedTransitionScope) {
                                 PokemonCard(

@@ -5,6 +5,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,18 +16,18 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -56,6 +57,10 @@ fun PokemonListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val pokemon = viewModel.pokemonList.collectAsLazyPagingItems()
 
+    LaunchedEffect(pokemon.loadState, pokemon.itemCount) {
+        Log.d("PokemonList", "loadState.refresh=${pokemon.loadState.refresh}, append=${pokemon.loadState.append}, itemCount=${pokemon.itemCount}")
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -63,15 +68,15 @@ fun PokemonListScreen(
                 title = { 
                     Text(
                         text = "Pokedex",
-                        style = androidx.compose.material3.MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     ) 
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
-                    titleContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 actions = {
                     IconButton(onClick = onSearchClick) {
@@ -129,8 +134,8 @@ fun PokemonListScreen(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .padding(16.dp),
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -150,15 +155,10 @@ private fun PokemonListContent(
     modifier: Modifier = Modifier
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
-    var isPullRefreshing by remember { mutableStateOf(false) }
 
     PullToRefreshBox(
-        isRefreshing = isRefreshing || isPullRefreshing,
-        onRefresh = {
-            isPullRefreshing = true
-            onRefresh()
-            isPullRefreshing = false
-        },
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
         state = pullToRefreshState,
         modifier = modifier
     ) {
@@ -171,7 +171,10 @@ private fun PokemonListContent(
         }
 
         LazyColumn {
-            items(count = pokemon.itemCount) { index ->
+            items(
+                count = pokemon.itemCount,
+                key = { index -> pokemon[index]?.id ?: index }
+            ) { index ->
                 val pokemonItem = pokemon[index]
                 if (pokemonItem != null) {
                     with(sharedTransitionScope) {
@@ -194,30 +197,25 @@ private fun PokemonListContent(
                 }
             }
 
-            // Mostrar indicador de carregamento no final da lista quando estiver carregando mais
             item {
                 when (val appendState = pokemon.loadState.append) {
                     is LoadState.Loading -> {
-                        LoadingIndicator(modifier = Modifier.padding(16.dp))
-                    }
-                    is LoadState.Error -> {
-                        // Mostrar mensagem de erro e botão de retry
-                        androidx.compose.material3.Text(
-                            text = "Error loading more: ${(appendState.error).message}",
+                        LoadingIndicator(
+                            fillMaxSize = false,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                                .padding(16.dp)
                         )
                     }
-                    else -> {
-                        // Verificar se há mais itens para carregar
-                        if (pokemon.itemCount > 0 && pokemon.loadState.append is LoadState.NotLoading) {
-                            // Se não estamos no fim da paginação, mostrar um spacer para garantir
-                            // que o usuário possa continuar scrollando
-                            androidx.compose.foundation.layout.Spacer(
-                                modifier = Modifier.padding(vertical = 16.dp)
-                            )
+                    is LoadState.Error -> {
+                        ErrorState(
+                            message = appendState.error.message ?: "Error loading more",
+                            onRetry = { pokemon.retry() }
+                        )
+                    }
+                    is LoadState.NotLoading -> {
+                        if (!appendState.endOfPaginationReached && pokemon.itemCount > 0) {
+                            Spacer(modifier = Modifier.padding(vertical = 16.dp))
                         }
                     }
                 }

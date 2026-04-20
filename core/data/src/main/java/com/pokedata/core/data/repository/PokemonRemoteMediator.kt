@@ -1,18 +1,23 @@
 package com.pokedata.core.data.repository
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.pokedata.core.data.local.dao.PokemonDao
+import com.pokedata.core.data.local.dao.PokemonTypeDao
 import com.pokedata.core.data.local.dao.RemoteKeyDao
 import com.pokedata.core.data.local.entity.PokemonWithTypes
 import com.pokedata.core.data.local.entity.RemoteKey
 import com.pokedata.core.data.local.PokemonDatabase
 import com.pokedata.core.data.remote.PokemonApi
 import com.pokedata.core.data.mapper.toPokemonEntity
+import com.pokedata.core.data.mapper.toTypeEntities
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -21,54 +26,50 @@ class PokemonRemoteMediator(
     private val api: PokemonApi,
     private val database: PokemonDatabase,
     private val pokemonDao: PokemonDao,
+    private val pokemonTypeDao: PokemonTypeDao,
     private val remoteKeyDao: RemoteKeyDao
 ) : RemoteMediator<Int, PokemonWithTypes>() {
+
+    private var savedFavoriteIds: Set<Int> = emptySet()
 
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, PokemonWithTypes>
     ): MediatorResult {
         val pageSize = state.config.pageSize
+        Log.d(TAG, "load() called: loadType=$loadType, pageSize=$pageSize, anchorPosition=${state.anchorPosition}")
+
         val offset = when (loadType) {
             LoadType.REFRESH -> {
-                // Sempre buscar da API no REFRESH (pull-to-refresh ou primeira carga)
-                // O offset é sempre 0 para refresh
+                Log.d(TAG, "REFRESH: starting from offset 0")
+                savedFavoriteIds = pokemonDao.getFavoriteIds().toSet()
                 0
             }
             LoadType.PREPEND -> {
-                // Não carregamos dados antes do início
+                Log.d(TAG, "PREPEND: endOfPaginationReached=true")
                 return MediatorResult.Success(endOfPaginationReached = true)
             }
             LoadType.APPEND -> {
                 val remoteKey = remoteKeyDao.getRemoteKey(KEY)
-                // Se não houver remoteKey, assumimos que é a primeira carga e começamos do offset 0
-                // Isso pode acontecer se o APPEND for chamado antes do REFRESH completar
                 if (remoteKey == null) {
-                    // Verificar se já temos dados no banco
                     val count = pokemonDao.getPokemonCount()
-                    if (count == 0) {
-                        // Se não há dados, começamos do início
-                        0
-                    } else {
-                        // Se há dados mas não há remoteKey, calculamos o próximo offset baseado na contagem
-                        count
-                    }
+                    Log.d(TAG, "APPEND: no remoteKey, db count=$count")
+                    if (count == 0) 0 else count
                 } else {
-                    remoteKey.nextOffset 
+                    Log.d(TAG, "APPEND: remoteKey.nextOffset=${remoteKey.nextOffset}")
+                    remoteKey.nextOffset
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
                 }
             }
         }
 
         return try {
-            // Buscar dados da API
+            Log.d(TAG, "API call: limit=$pageSize, offset=$offset")
             val response = api.getPokemonList(limit = pageSize, offset = offset)
-            
-            // Verificar se chegamos ao fim da paginação
-            // A API retorna 'next' como null quando não há mais páginas
+
             val endOfPaginationReached = response.next == null || response.results.isEmpty()
-            
-            // Converter resposta para entidades
+            Log.d(TAG, "API response: count=${response.count}, results=${response.results.size}, next=${response.next != null}, endOfPaginationReached=$endOfPaginationReached")
+
             val entities = response.results.map { summary ->
                 val id = extractIdFromUrl(summary.url)
                 summary.toPokemonEntity(
@@ -77,22 +78,44 @@ class PokemonRemoteMediator(
                 )
             }
 
-            // Salvar no banco em uma transação
+            val typeDataByPokemonId = coroutineScope {
+                response.results.map { summary ->
+                    async {
+                        val id = extractIdFromUrl(summary.url)
+                        try {
+                            val detail = api.getPokemonDetail(id)
+                            id to detail.toTypeEntities()
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Failed to fetch detail for pokemon $id: ${e.message}")
+                            id to emptyList()
+                        }
+                    }
+                }.associate { it.await() }
+            }
+
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    // Limpar remote keys mas manter os dados existentes
-                    // para preservar favoritos e evitar flash de conteúdo vazio
                     remoteKeyDao.clearRemoteKeys()
+                    pokemonDao.clearAll()
+                    Log.d(TAG, "REFRESH: cleared remote keys and pokemon data")
                 }
-                
-                // Usar IGNORE para preservar dados existentes (incluindo favoritos)
-                // em vez de REPLACE que sobrescreveria isFavorite = false
+
                 if (entities.isNotEmpty()) {
                     pokemonDao.insertPokemonListIgnoreConflict(entities)
+
+                    for ((_, typeEntities) in typeDataByPokemonId) {
+                        if (typeEntities.isNotEmpty()) {
+                            pokemonTypeDao.insertAll(typeEntities)
+                        }
+                    }
+
+                    Log.d(TAG, "Inserted ${entities.size} entities with type data")
                 }
-                
-                // Sempre atualizar o remoteKey, mesmo se não houver resultados
-                // para garantir que o APPEND funcione corretamente
+
+                for (id in savedFavoriteIds) {
+                    pokemonDao.updateFavoriteStatus(id, true)
+                }
+
                 val newNextOffset = if (endOfPaginationReached) null else offset + pageSize
                 remoteKeyDao.insertOrReplace(
                     RemoteKey(
@@ -100,15 +123,18 @@ class PokemonRemoteMediator(
                         nextOffset = newNextOffset
                     )
                 )
+                Log.d(TAG, "Updated remoteKey: nextOffset=$newNextOffset")
             }
 
+            Log.d(TAG, "Returning: endOfPaginationReached=$endOfPaginationReached")
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (e: CancellationException) {
-            // Propagar CancellationException para que coroutines possam ser canceladas corretamente
             throw e
         } catch (e: IOException) {
+            Log.e(TAG, "IOException: ${e.message}", e)
             MediatorResult.Error(e)
         } catch (e: HttpException) {
+            Log.e(TAG, "HttpException: ${e.message}", e)
             MediatorResult.Error(e)
         }
     }
@@ -118,6 +144,7 @@ class PokemonRemoteMediator(
     }
 
     companion object {
+        private const val TAG = "PokemonRemoteMediator"
         const val KEY = "pokemon_list"
     }
 }

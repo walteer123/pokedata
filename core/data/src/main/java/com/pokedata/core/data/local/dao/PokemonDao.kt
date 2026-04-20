@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.pokedata.core.data.local.entity.PokemonEntity
 import com.pokedata.core.data.local.entity.PokemonWithTypes
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PokemonDao {
@@ -58,6 +59,20 @@ interface PokemonDao {
     @Query("DELETE FROM pokemon WHERE id = :id")
     suspend fun deletePokemon(id: Int)
 
-    @Query("SELECT COUNT(*) FROM pokemon")
+@Query("SELECT COUNT(*) FROM pokemon")
     suspend fun getPokemonCount(): Int
+
+    @Query("DELETE FROM pokemon")
+    suspend fun clearAll()
+
+    @Query("SELECT id FROM pokemon WHERE is_favorite = 1")
+    suspend fun getFavoriteIds(): List<Int>
+
+    @Transaction
+    @Query("SELECT * FROM pokemon WHERE is_favorite = 1 ORDER BY name ASC")
+    fun getFavoritesWithTypesFlow(): Flow<List<PokemonWithTypes>>
+
+    @Transaction
+    @Query("SELECT * FROM pokemon ORDER BY id ASC")
+    fun getAllPokemonWithTypesFlow(): Flow<List<PokemonWithTypes>>
 }

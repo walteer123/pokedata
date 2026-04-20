@@ -15,10 +15,11 @@ import com.pokedata.core.designsystem.theme.PokedexTheme
 @Composable
 fun LoadingIndicator(
     modifier: Modifier = Modifier,
-    contentDescription: String? = null
+    contentDescription: String? = null,
+    fillMaxSize: Boolean = true
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = if (fillMaxSize) modifier.fillMaxSize() else modifier,
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(

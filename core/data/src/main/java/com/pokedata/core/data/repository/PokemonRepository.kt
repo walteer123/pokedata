@@ -42,15 +42,14 @@ class PokemonRepository(
             api = api,
             database = database,
             pokemonDao = pokemonDao,
+            pokemonTypeDao = pokemonTypeDao,
             remoteKeyDao = remoteKeyDao
         )
         return Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
                 enablePlaceholders = false,
-                prefetchDistance = PAGE_SIZE / 2, // Pre-fetch quando estiver a 10 itens do final
-                initialLoadSize = PAGE_SIZE * 3, // Carregar 60 itens inicialmente para melhor UX
-                maxSize = PagingConfig.MAX_SIZE_UNBOUNDED // Permitir crescimento ilimitado da lista
+                prefetchDistance = PAGE_SIZE
             ),
             remoteMediator = remoteMediator,
             pagingSourceFactory = {
@@ -189,20 +188,16 @@ class PokemonRepository(
     }
 
     override fun getFavorites(): Flow<List<PokemonListItem>> {
-        return kotlinx.coroutines.flow.flow {
-            emit(
-                withContext(Dispatchers.IO) {
-                    pokemonDao.getFavoritesWithTypes().map { pokemonWithTypes ->
-                        PokemonListItem(
-                            id = pokemonWithTypes.pokemon.id,
-                            name = pokemonWithTypes.pokemon.name,
-                            spriteUrl = pokemonWithTypes.pokemon.spriteUrl,
-                            isFavorite = pokemonWithTypes.pokemon.isFavorite,
-                            types = pokemonWithTypes.types.map { it.typeName }.sorted()
-                        )
-                    }
-                }
-            )
+        return pokemonDao.getFavoritesWithTypesFlow().map { list ->
+            list.map { pokemonWithTypes ->
+                PokemonListItem(
+                    id = pokemonWithTypes.pokemon.id,
+                    name = pokemonWithTypes.pokemon.name,
+                    spriteUrl = pokemonWithTypes.pokemon.spriteUrl,
+                    isFavorite = pokemonWithTypes.pokemon.isFavorite,
+                    types = pokemonWithTypes.types.map { it.typeName }.sorted()
+                )
+            }
         }
     }
 
