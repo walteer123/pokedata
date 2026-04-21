@@ -64,7 +64,11 @@ fun SearchScreen(
                             onValueChange = viewModel::onQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusRequester(focusRequester),
+                                .focusRequester(focusRequester)
+                                .sharedBounds(
+                                    rememberSharedContentState(key = "search-bar"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                ),
                             placeholder = { Text("Search Pokemon...") },
                             leadingIcon = {
                                 Icon(
