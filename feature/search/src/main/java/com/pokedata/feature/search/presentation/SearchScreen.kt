@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -65,12 +64,7 @@ fun SearchScreen(
                             onValueChange = viewModel::onQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(48.dp)
-                                .focusRequester(focusRequester)
-                                .sharedBounds(
-                                    rememberSharedContentState(key = "search-bar"),
-                                    animatedVisibilityScope = animatedVisibilityScope
-                                ),
+                                .focusRequester(focusRequester),
                             placeholder = { Text("Search Pokemon...") },
                             leadingIcon = {
                                 Icon(
