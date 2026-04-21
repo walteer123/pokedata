@@ -3,6 +3,8 @@ package com.pokedata.feature.pokemonlist.presentation
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.rememberSharedContentState
+import androidx.compose.animation.sharedBounds
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +41,7 @@ import com.pokedata.core.designsystem.components.EmptyState
 import com.pokedata.core.designsystem.components.ErrorState
 import com.pokedata.core.designsystem.components.LoadingIndicator
 import com.pokedata.core.designsystem.components.PokemonCard
+import com.pokedata.core.designsystem.components.SearchBarCompact
 import com.pokedata.core.designsystem.components.TypeFilterChips
 import com.pokedata.feature.pokemonlist.presentation.PokemonTypes
 
@@ -79,8 +81,17 @@ fun PokemonListScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 actions = {
-                    IconButton(onClick = onSearchClick) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
+                    with(sharedTransitionScope) {
+                        SearchBarCompact(
+                            onClick = onSearchClick,
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .weight(1f, fill = false)
+                                .sharedBounds(
+                                    rememberSharedContentState(key = "search-bar"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                        )
                     }
                     IconButton(onClick = onFavoritesClick) {
                         Icon(Icons.Default.Favorite, contentDescription = "Favorites")

@@ -3,6 +3,8 @@ package com.pokedata.feature.search.presentation
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.rememberSharedContentState
+import androidx.compose.animation.sharedBounds
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,9 +24,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import com.pokedata.core.data.model.PokemonListItem
 import com.pokedata.core.designsystem.components.EmptyState
@@ -42,33 +48,46 @@ fun SearchScreen(
     viewModel: SearchViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
-                    OutlinedTextField(
-                        value = uiState.query,
-                        onValueChange = viewModel::onQueryChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Search Pokemon...") },
-                        trailingIcon = {
-                            if (uiState.query.isNotBlank()) {
-                                IconButton(onClick = viewModel::clearSearch) {
-                                    Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                    with(sharedTransitionScope) {
+                        OutlinedTextField(
+                            value = uiState.query,
+                            onValueChange = viewModel::onQueryChange,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester)
+                                .sharedBounds(
+                                    rememberSharedContentState(key = "search-bar"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                ),
+                            placeholder = { Text("Search Pokemon...") },
+                            trailingIcon = {
+                                if (uiState.query.isNotBlank()) {
+                                    IconButton(onClick = viewModel::clearSearch) {
+                                        Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                                    }
                                 }
-                            }
-                        },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        shape = MaterialTheme.shapes.small
-                    )
+                            },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            shape = MaterialTheme.shapes.small
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,

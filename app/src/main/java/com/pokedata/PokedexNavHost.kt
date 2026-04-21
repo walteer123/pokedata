@@ -5,6 +5,8 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -121,7 +123,12 @@ fun PokedexNavHost(
                 )
             }
 
-            composable<Route.Search> {
+            composable<Route.Search>(
+                enterTransition = { slideInHorizontally(tween(300)) + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) + fadeOut(tween(300)) },
+                popEnterTransition = { slideInHorizontally(tween(300)) + fadeIn(tween(300)) },
+                popExitTransition = { slideOutHorizontally(tween(300)) + fadeOut(tween(300)) }
+            ) {
                 Scaffold(
                     bottomBar = {
                         if (showBottomNav) {
@@ -146,7 +153,9 @@ fun PokedexNavHost(
                                 onPokemonClick = { pokemonId, spriteUrl, name ->
                                     navController.navigate(Route.PokemonDetail(pokemonId, spriteUrl, name))
                                 },
-                                onBackClick = {},
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
                                 sharedTransitionScope = this@SharedTransitionLayout,
                                 animatedVisibilityScope = this@composable
                             )
