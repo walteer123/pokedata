@@ -25,7 +25,7 @@ fun SearchBarCompact(
 ) {
     Surface(
         modifier = modifier
-            .height(40.dp)
+            .height(48.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh

@@ -65,7 +65,7 @@ fun SearchScreen(
                             onValueChange = viewModel::onQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(40.dp)
+                                .height(48.dp)
                                 .focusRequester(focusRequester)
                                 .sharedBounds(
                                     rememberSharedContentState(key = "search-bar"),
