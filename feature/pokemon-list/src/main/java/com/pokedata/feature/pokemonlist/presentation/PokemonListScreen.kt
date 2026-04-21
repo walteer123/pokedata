@@ -3,8 +3,6 @@ package com.pokedata.feature.pokemonlist.presentation
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.rememberSharedContentState
-import androidx.compose.animation.sharedBounds
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -85,8 +83,8 @@ fun PokemonListScreen(
                         SearchBarCompact(
                             onClick = onSearchClick,
                             modifier = Modifier
-                                .padding(end = 8.dp)
-                                .weight(1f, fill = false)
+                                .padding(start = 16.dp, end = 8.dp)
+                                .weight(1f)
                                 .sharedBounds(
                                     rememberSharedContentState(key = "search-bar"),
                                     animatedVisibilityScope = animatedVisibilityScope

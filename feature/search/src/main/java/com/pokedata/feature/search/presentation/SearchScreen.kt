@@ -3,22 +3,22 @@ package com.pokedata.feature.search.presentation
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.rememberSharedContentState
-import androidx.compose.animation.sharedBounds
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -60,17 +60,25 @@ fun SearchScreen(
             TopAppBar(
                 title = {
                     with(sharedTransitionScope) {
-                        OutlinedTextField(
+                        TextField(
                             value = uiState.query,
                             onValueChange = viewModel::onQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(40.dp)
                                 .focusRequester(focusRequester)
                                 .sharedBounds(
                                     rememberSharedContentState(key = "search-bar"),
                                     animatedVisibilityScope = animatedVisibilityScope
                                 ),
                             placeholder = { Text("Search Pokemon...") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
                             trailingIcon = {
                                 if (uiState.query.isNotBlank()) {
                                     IconButton(onClick = viewModel::clearSearch) {
@@ -79,13 +87,15 @@ fun SearchScreen(
                                 }
                             },
                             singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                disabledIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                errorIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
                             ),
-                            shape = MaterialTheme.shapes.small
+                            shape = MaterialTheme.shapes.extraLarge
                         )
                     }
                 },
