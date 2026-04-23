@@ -128,7 +128,10 @@ fun SearchScreen(
                 )
                 else -> {
                     LazyColumn {
-                        items(uiState.results.size) { index ->
+                        items(
+                            count = uiState.results.size,
+                            key = { index -> uiState.results[index].id }
+                        ) { index ->
                             val pokemon = uiState.results[index]
                             with(sharedTransitionScope) {
                                 PokemonCard(
@@ -138,7 +141,7 @@ fun SearchScreen(
                                     spriteUrl = pokemon.spriteUrl,
                                     isFavorite = pokemon.isFavorite,
                                     onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
-                                    onFavoriteToggle = null,
+                                    onFavoriteToggle = viewModel::toggleFavorite,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                     imageModifier = Modifier.sharedBounds(
                                         rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),

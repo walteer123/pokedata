@@ -59,6 +59,16 @@ class SearchViewModel(
         _uiState.value = SearchUiState()
     }
 
+    fun toggleFavorite(id: Int) {
+        viewModelScope.launch {
+            repository.toggleFavorite(id)
+            if (_uiState.value.query.isNotBlank()) {
+                val results = repository.searchPokemon(_uiState.value.query)
+                _uiState.value = _uiState.value.copy(results = results)
+            }
+        }
+    }
+
     private fun performSearch(query: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
