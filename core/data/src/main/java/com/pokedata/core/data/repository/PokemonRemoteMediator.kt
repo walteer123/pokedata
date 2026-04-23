@@ -15,9 +15,12 @@ import com.pokedata.core.data.local.PokemonDatabase
 import com.pokedata.core.data.remote.PokemonApi
 import com.pokedata.core.data.mapper.toPokemonEntity
 import com.pokedata.core.data.mapper.toTypeEntities
+import com.pokedata.core.data.util.retryWithBackoff
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -31,6 +34,7 @@ class PokemonRemoteMediator(
 ) : RemoteMediator<Int, PokemonWithTypes>() {
 
     private var savedFavoriteIds: Set<Int> = emptySet()
+    private val detailSemaphore = Semaphore(permits = 5)
 
     override suspend fun load(
         loadType: LoadType,
@@ -83,10 +87,14 @@ class PokemonRemoteMediator(
                     async {
                         val id = extractIdFromUrl(summary.url)
                         try {
-                            val detail = api.getPokemonDetail(id)
+                            val detail = detailSemaphore.withPermit {
+                                retryWithBackoff {
+                                    api.getPokemonDetail(id)
+                                }
+                            }
                             id to detail.toTypeEntities()
                         } catch (e: Exception) {
-                            Log.w(TAG, "Failed to fetch detail for pokemon $id: ${e.message}")
+                            Log.w(TAG, "Failed to fetch detail for pokemon $id after retries: ${e.message}")
                             id to emptyList()
                         }
                     }
@@ -101,8 +109,9 @@ class PokemonRemoteMediator(
                 if (entities.isNotEmpty()) {
                     pokemonDao.insertPokemonListIgnoreConflict(entities)
 
-                    for ((_, typeEntities) in typeDataByPokemonId) {
+                    for ((pokemonId, typeEntities) in typeDataByPokemonId) {
                         if (typeEntities.isNotEmpty()) {
+                            pokemonTypeDao.deleteByPokemonId(pokemonId)
                             pokemonTypeDao.insertAll(typeEntities)
                         }
                     }

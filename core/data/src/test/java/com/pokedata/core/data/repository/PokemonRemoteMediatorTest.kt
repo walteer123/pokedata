@@ -105,6 +105,7 @@ class PokemonRemoteMediatorTest {
         coEvery { api.getPokemonDetail(1) } returns detailResponse
         coEvery { pokemonDao.getFavoriteIds() } returns emptyList()
         coEvery { pokemonDao.insertPokemonListIgnoreConflict(any()) } just Runs
+        coEvery { pokemonTypeDao.deleteByPokemonId(any()) } just Runs
         coEvery { pokemonTypeDao.insertAll(any()) } just Runs
         coEvery { remoteKeyDao.insertOrReplace(any()) } just Runs
 
@@ -159,6 +160,7 @@ class PokemonRemoteMediatorTest {
         coEvery { pokemonDao.getFavoriteIds() } returns listOf(1)
         coEvery { pokemonDao.insertPokemonListIgnoreConflict(any()) } just Runs
         coEvery { pokemonDao.updateFavoriteStatus(any(), any()) } just Runs
+        coEvery { pokemonTypeDao.deleteByPokemonId(any()) } just Runs
         coEvery { pokemonTypeDao.insertAll(any()) } just Runs
         coEvery { remoteKeyDao.insertOrReplace(any()) } just Runs
 
@@ -210,6 +212,7 @@ class PokemonRemoteMediatorTest {
         )
         coEvery { pokemonDao.getFavoriteIds() } returns emptyList()
         coEvery { pokemonDao.insertPokemonListIgnoreConflict(any()) } just Runs
+        coEvery { pokemonTypeDao.deleteByPokemonId(any()) } just Runs
         coEvery { pokemonTypeDao.insertAll(any()) } just Runs
         coEvery { remoteKeyDao.insertOrReplace(any()) } just Runs
 

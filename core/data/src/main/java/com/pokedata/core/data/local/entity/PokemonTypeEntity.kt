@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "pokemon_types",
+    primaryKeys = ["pokemon_id", "slot"],
     foreignKeys = [
         ForeignKey(
             entity = PokemonEntity::class,
@@ -19,7 +20,6 @@ import androidx.room.PrimaryKey
     indices = [Index(value = ["pokemon_id"])]
 )
 data class PokemonTypeEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "pokemon_id") val pokemonId: Int,
     @ColumnInfo(name = "type_name") val typeName: String,
     @ColumnInfo(name = "slot") val slot: Int

@@ -25,7 +25,7 @@ import com.pokedata.core.data.local.entity.RemoteKey
         BaseStatsEntity::class,
         RemoteKey::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class PokemonDatabase : RoomDatabase() {
@@ -47,6 +47,35 @@ abstract class PokemonDatabase : RoomDatabase() {
                 )
             }
         }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Drop and recreate pokemon_types with composite primary key
+                db.execSQL("DROP TABLE IF EXISTS `pokemon_types`")
+                db.execSQL(
+                    "CREATE TABLE `pokemon_types` (" +
+                    "`pokemon_id` INTEGER NOT NULL, " +
+                    "`type_name` TEXT NOT NULL, " +
+                    "`slot` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`pokemon_id`, `slot`), " +
+                    "FOREIGN KEY(`pokemon_id`) REFERENCES `pokemon`(`id`) ON DELETE CASCADE)"
+                )
+                db.execSQL("CREATE INDEX `index_pokemon_types_pokemon_id` ON `pokemon_types` (`pokemon_id`)")
+
+                // Drop and recreate abilities with composite primary key
+                db.execSQL("DROP TABLE IF EXISTS `abilities`")
+                db.execSQL(
+                    "CREATE TABLE `abilities` (" +
+                    "`pokemon_id` INTEGER NOT NULL, " +
+                    "`ability_name` TEXT NOT NULL, " +
+                    "`is_hidden` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`pokemon_id`, `ability_name`), " +
+                    "FOREIGN KEY(`pokemon_id`) REFERENCES `pokemon`(`id`) ON DELETE CASCADE)"
+                )
+                db.execSQL("CREATE INDEX `index_abilities_pokemon_id` ON `abilities` (`pokemon_id`)")
+            }
+        }
+
         private const val DATABASE_NAME = "pokemon_database"
 
         @Volatile
@@ -59,7 +88,7 @@ abstract class PokemonDatabase : RoomDatabase() {
                     PokemonDatabase::class.java,
                     DATABASE_NAME
                 )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .fallbackToDestructiveMigration() // Durante desenvolvimento, permite recriar o banco se necessário
                 .build().also { INSTANCE = it }
             }
