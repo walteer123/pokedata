@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.pokedata.core.data.model.PokemonListItem
@@ -56,6 +58,7 @@ fun PokemonListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pokemon = viewModel.pokemonList.collectAsLazyPagingItems()
+    val listState = rememberLazyListState()
 
     LaunchedEffect(pokemon.loadState, pokemon.itemCount) {
         Log.d("PokemonList", "loadState.refresh=${pokemon.loadState.refresh}, append=${pokemon.loadState.append}, itemCount=${pokemon.itemCount}")
@@ -124,6 +127,7 @@ fun PokemonListScreen(
                         )
                         PokemonListContent(
                             pokemon = pokemon,
+                            listState = listState,
                             isRefreshing = pokemon.loadState.refresh is LoadState.Loading,
                             onRefresh = { pokemon.refresh() },
                             onPokemonClick = onPokemonClick,
@@ -155,6 +159,7 @@ fun PokemonListScreen(
 @Composable
 private fun PokemonListContent(
     pokemon: LazyPagingItems<PokemonListItem>,
+    listState: LazyListState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onPokemonClick: (Int, String, String) -> Unit,
@@ -179,7 +184,7 @@ private fun PokemonListContent(
             return@PullToRefreshBox
         }
 
-        LazyColumn {
+        LazyColumn(state = listState) {
             items(
                 count = pokemon.itemCount,
                 key = { index -> pokemon[index]?.id ?: index }

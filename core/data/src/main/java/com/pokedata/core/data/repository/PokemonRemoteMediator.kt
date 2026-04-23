@@ -41,7 +41,7 @@ class PokemonRemoteMediator(
 
         val offset = when (loadType) {
             LoadType.REFRESH -> {
-                Log.d(TAG, "REFRESH: starting from offset 0")
+                Log.d(TAG, "REFRESH: starting from offset 0, preserving existing data")
                 savedFavoriteIds = pokemonDao.getFavoriteIds().toSet()
                 0
             }
@@ -95,9 +95,7 @@ class PokemonRemoteMediator(
 
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    remoteKeyDao.clearRemoteKeys()
-                    pokemonDao.clearAll()
-                    Log.d(TAG, "REFRESH: cleared remote keys and pokemon data")
+                    Log.d(TAG, "REFRESH: preserving existing data, saved ${savedFavoriteIds.size} favorite IDs")
                 }
 
                 if (entities.isNotEmpty()) {

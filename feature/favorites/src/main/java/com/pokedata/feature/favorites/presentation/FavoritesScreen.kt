@@ -1,12 +1,19 @@
 package com.pokedata.feature.favorites.presentation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +44,7 @@ fun FavoritesScreen(
     viewModel: FavoritesViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -73,27 +81,37 @@ fun FavoritesScreen(
                     subtitle = "Tap the heart icon on a Pokemon to add it"
                 )
                 else -> {
-                    LazyColumn {
+                    LazyColumn(state = listState) {
                         items(
                             count = uiState.favorites.size,
                             key = { index -> uiState.favorites[index].id }
                         ) { index ->
                             val pokemon = uiState.favorites[index]
-                            with(sharedTransitionScope) {
-                                PokemonCard(
-                                    id = pokemon.id,
-                                    name = pokemon.name,
-                                    number = pokemon.id,
-                                    spriteUrl = pokemon.spriteUrl,
-                                    isFavorite = true,
-                                    onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
-                                    onFavoriteToggle = { id -> viewModel.removeFavorite(id) },
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                                    imageModifier = Modifier.sharedBounds(
-                                        rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
-                                        animatedVisibilityScope = animatedVisibilityScope
+                            val isRemoving = uiState.removingIds.contains(pokemon.id)
+
+                            AnimatedVisibility(
+                                visible = !isRemoving,
+                                enter = fadeIn(animationSpec = tween(300)) +
+                                        expandVertically(animationSpec = tween(300)),
+                                exit = fadeOut(animationSpec = tween(300)) +
+                                        shrinkVertically(animationSpec = tween(300))
+                            ) {
+                                with(sharedTransitionScope) {
+                                    PokemonCard(
+                                        id = pokemon.id,
+                                        name = pokemon.name,
+                                        number = pokemon.id,
+                                        spriteUrl = pokemon.spriteUrl,
+                                        isFavorite = true,
+                                        onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
+                                        onFavoriteToggle = { id -> viewModel.removeFavorite(id) },
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                        imageModifier = Modifier.sharedBounds(
+                                            rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                                            animatedVisibilityScope = animatedVisibilityScope
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }

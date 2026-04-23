@@ -69,6 +69,7 @@ class FavoritesViewModelTest {
         assertEquals(1, viewModel.uiState.value.favorites.size)
 
         viewModel.removeFavorite(4)
+        dispatcherRule.testDispatcher.scheduler.advanceTimeBy(300)
         dispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
 
         repository.getFavorites().test {
@@ -76,5 +77,26 @@ class FavoritesViewModelTest {
             assertTrue(favorites.isEmpty())
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun `removeFavorite adds id to removingIds immediately`() = runTest {
+        viewModel = FavoritesViewModel(repository)
+        dispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.removeFavorite(4)
+
+        assertTrue(viewModel.uiState.value.removingIds.contains(4))
+    }
+
+    @Test
+    fun `removeFavorite does not add duplicate removingIds`() = runTest {
+        viewModel = FavoritesViewModel(repository)
+        dispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.removeFavorite(4)
+        viewModel.removeFavorite(4)
+
+        assertEquals(1, viewModel.uiState.value.removingIds.size)
     }
 }
