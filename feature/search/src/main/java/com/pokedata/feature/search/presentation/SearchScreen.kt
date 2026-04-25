@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
@@ -35,6 +37,7 @@ import com.pokedata.core.data.model.PokemonListItem
 import com.pokedata.core.designsystem.components.EmptyState
 import com.pokedata.core.designsystem.components.LoadingIndicator
 import com.pokedata.core.designsystem.components.PokemonCard
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -44,6 +47,7 @@ fun SearchScreen(
     onBackClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
+    windowWidthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
     viewModel: SearchViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -127,27 +131,59 @@ fun SearchScreen(
                     subtitle = "Type a name or number to search"
                 )
                 else -> {
-                    LazyColumn {
-                        items(
-                            count = uiState.results.size,
-                            key = { index -> uiState.results[index].id }
-                        ) { index ->
-                            val pokemon = uiState.results[index]
-                            with(sharedTransitionScope) {
-                                PokemonCard(
-                                    id = pokemon.id,
-                                    name = pokemon.name,
-                                    number = pokemon.id,
-                                    spriteUrl = pokemon.spriteUrl,
-                                    isFavorite = pokemon.isFavorite,
-                                    onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
-                                    onFavoriteToggle = viewModel::toggleFavorite,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                                    imageModifier = Modifier.sharedBounds(
-                                        rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
-                                        animatedVisibilityScope = animatedVisibilityScope
+                    val useGrid = windowWidthSizeClass == WindowWidthSizeClass.Medium ||
+                            windowWidthSizeClass == WindowWidthSizeClass.Expanded
+                    if (useGrid) {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(160.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(
+                                count = uiState.results.size,
+                                key = { index -> uiState.results[index].id }
+                            ) { index ->
+                                val pokemon = uiState.results[index]
+                                with(sharedTransitionScope) {
+                                    PokemonCard(
+                                        id = pokemon.id,
+                                        name = pokemon.name,
+                                        number = pokemon.id,
+                                        spriteUrl = pokemon.spriteUrl,
+                                        isFavorite = pokemon.isFavorite,
+                                        onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
+                                        onFavoriteToggle = viewModel::toggleFavorite,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        imageModifier = Modifier.sharedBounds(
+                                            rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                                            animatedVisibilityScope = animatedVisibilityScope
+                                        )
                                     )
-                                )
+                                }
+                            }
+                        }
+                    } else {
+                        LazyColumn {
+                            items(
+                                count = uiState.results.size,
+                                key = { index -> uiState.results[index].id }
+                            ) { index ->
+                                val pokemon = uiState.results[index]
+                                with(sharedTransitionScope) {
+                                    PokemonCard(
+                                        id = pokemon.id,
+                                        name = pokemon.name,
+                                        number = pokemon.id,
+                                        spriteUrl = pokemon.spriteUrl,
+                                        isFavorite = pokemon.isFavorite,
+                                        onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
+                                        onFavoriteToggle = viewModel::toggleFavorite,
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                        imageModifier = Modifier.sharedBounds(
+                                            rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                                            animatedVisibilityScope = animatedVisibilityScope
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
