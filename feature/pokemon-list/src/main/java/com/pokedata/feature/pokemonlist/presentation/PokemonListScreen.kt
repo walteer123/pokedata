@@ -10,7 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,9 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.LoadState
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.pokedata.core.data.model.PokemonListItem
@@ -44,6 +46,7 @@ import com.pokedata.core.designsystem.components.PokemonCard
 import com.pokedata.core.designsystem.components.SearchBarCompact
 import com.pokedata.core.designsystem.components.TypeFilterChips
 import com.pokedata.feature.pokemonlist.presentation.PokemonTypes
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -54,15 +57,13 @@ fun PokemonListScreen(
     onFavoritesClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
+    windowWidthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
     viewModel: PokemonListViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pokemon = viewModel.pokemonList.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
-
-    LaunchedEffect(pokemon.loadState, pokemon.itemCount) {
-        Log.d("PokemonList", "loadState.refresh=${pokemon.loadState.refresh}, append=${pokemon.loadState.append}, itemCount=${pokemon.itemCount}")
-    }
+    val gridState = rememberLazyGridState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -127,13 +128,16 @@ fun PokemonListScreen(
                         )
                         PokemonListContent(
                             pokemon = pokemon,
-                            listState = listState,
+                            windowWidthSizeClass = windowWidthSizeClass,
                             isRefreshing = pokemon.loadState.refresh is LoadState.Loading,
                             onRefresh = { pokemon.refresh() },
                             onPokemonClick = onPokemonClick,
                             onFavoriteToggle = viewModel::toggleFavorite,
                             sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            listState = listState,
+                            gridState = gridState,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -159,16 +163,20 @@ fun PokemonListScreen(
 @Composable
 private fun PokemonListContent(
     pokemon: LazyPagingItems<PokemonListItem>,
-    listState: LazyListState,
+    windowWidthSizeClass: WindowWidthSizeClass,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onPokemonClick: (Int, String, String) -> Unit,
     onFavoriteToggle: (Int) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
+    listState: LazyListState,
+    gridState: LazyGridState,
     modifier: Modifier = Modifier
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
+    val useGrid = windowWidthSizeClass == WindowWidthSizeClass.Medium ||
+            windowWidthSizeClass == WindowWidthSizeClass.Expanded
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -184,55 +192,102 @@ private fun PokemonListContent(
             return@PullToRefreshBox
         }
 
-        LazyColumn(state = listState) {
-            items(
-                count = pokemon.itemCount,
-                key = { index -> pokemon[index]?.id ?: index }
-            ) { index ->
-                val pokemonItem = pokemon[index]
-                if (pokemonItem != null) {
-                    with(sharedTransitionScope) {
-                        PokemonCard(
-                            id = pokemonItem.id,
-                            name = pokemonItem.name,
-                            number = pokemonItem.id,
-                            spriteUrl = pokemonItem.spriteUrl,
-                            isFavorite = pokemonItem.isFavorite,
-                            types = pokemonItem.types,
-                            onClick = { onPokemonClick(pokemonItem.id, pokemonItem.spriteUrl ?: "", pokemonItem.name) },
-                            onFavoriteToggle = onFavoriteToggle,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            imageModifier = Modifier.sharedBounds(
-                                rememberSharedContentState(key = "pokemon-image-${pokemonItem.id}"),
-                                animatedVisibilityScope = animatedVisibilityScope
+        if (useGrid) {
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Adaptive(160.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(
+                    count = pokemon.itemCount,
+                    key = { index -> index }
+                ) { index ->
+                    val pokemonItem = pokemon[index]
+                    if (pokemonItem != null) {
+                        with(sharedTransitionScope) {
+                            PokemonCard(
+                                id = pokemonItem.id,
+                                name = pokemonItem.name,
+                                number = pokemonItem.id,
+                                spriteUrl = pokemonItem.spriteUrl,
+                                isFavorite = pokemonItem.isFavorite,
+                                types = pokemonItem.types,
+                                onClick = { onPokemonClick(pokemonItem.id, pokemonItem.spriteUrl ?: "", pokemonItem.name) },
+                                onFavoriteToggle = onFavoriteToggle,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                imageModifier = Modifier.sharedBounds(
+                                    rememberSharedContentState(key = "pokemon-image-${pokemonItem.id}"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
                             )
-                        )
-                    }
-                }
-            }
-
-            item {
-                when (val appendState = pokemon.loadState.append) {
-                    is LoadState.Loading -> {
-                        LoadingIndicator(
-                            fillMaxSize = false,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        )
-                    }
-                    is LoadState.Error -> {
-                        ErrorState(
-                            message = appendState.error.message ?: "Error loading more",
-                            onRetry = { pokemon.retry() }
-                        )
-                    }
-                    is LoadState.NotLoading -> {
-                        if (!appendState.endOfPaginationReached && pokemon.itemCount > 0) {
-                            Spacer(modifier = Modifier.padding(vertical = 16.dp))
                         }
                     }
                 }
+
+                item {
+                    AppendStateItem(pokemon.loadState.append, pokemon.itemCount, { pokemon.retry() })
+                }
+            }
+        } else {
+            LazyColumn(state = listState, modifier = Modifier.fillMaxWidth()) {
+                items(
+                    count = pokemon.itemCount,
+                    key = { index -> index }
+                ) { index ->
+                    val pokemonItem = pokemon[index]
+                    if (pokemonItem != null) {
+                        with(sharedTransitionScope) {
+                            PokemonCard(
+                                id = pokemonItem.id,
+                                name = pokemonItem.name,
+                                number = pokemonItem.id,
+                                spriteUrl = pokemonItem.spriteUrl,
+                                isFavorite = pokemonItem.isFavorite,
+                                types = pokemonItem.types,
+                                onClick = { onPokemonClick(pokemonItem.id, pokemonItem.spriteUrl ?: "", pokemonItem.name) },
+                                onFavoriteToggle = onFavoriteToggle,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                imageModifier = Modifier.sharedBounds(
+                                    rememberSharedContentState(key = "pokemon-image-${pokemonItem.id}"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    AppendStateItem(pokemon.loadState.append, pokemon.itemCount, { pokemon.retry() })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppendStateItem(
+    appendState: LoadState,
+    itemCount: Int,
+    onRetry: () -> Unit
+) {
+    when (appendState) {
+        is LoadState.Loading -> {
+            LoadingIndicator(
+                fillMaxSize = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+        }
+        is LoadState.Error -> {
+            ErrorState(
+                message = appendState.error.message ?: "Error loading more",
+                onRetry = onRetry
+            )
+        }
+        is LoadState.NotLoading -> {
+            if (!appendState.endOfPaginationReached && itemCount > 0) {
+                Spacer(modifier = Modifier.padding(vertical = 16.dp))
             }
         }
     }

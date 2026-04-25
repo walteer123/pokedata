@@ -24,6 +24,7 @@ espresso-core = "3.6.1"
 runner = "1.6.2"
 ktlint-gradle = "12.1.1"
 baselineprofile = "1.3.3"
+window = "1.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -75,6 +76,7 @@ androidx-test-runner = { group = "androidx.test", name = "runner", version.ref =
 ktlint-gradle = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
 androidx-benchmark-macrobenchmark = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "baselineprofile" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version = "1.4.1" }
+androidx-window-core = { group = "androidx.window", name = "window", version.ref = "window" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

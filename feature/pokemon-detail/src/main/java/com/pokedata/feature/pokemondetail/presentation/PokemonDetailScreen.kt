@@ -42,6 +42,7 @@ import com.pokedata.core.designsystem.components.TypeBadge
 import com.pokedata.core.ui.extensions.capitalizeFirst
 import com.pokedata.core.ui.extensions.formatHeight
 import com.pokedata.core.ui.extensions.formatWeight
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -52,8 +53,10 @@ fun PokemonDetailScreen(
     pokemonName: String = "",
     onBackClick: () -> Unit,
     onFavoriteToggle: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    windowWidthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
+    isInPane: Boolean = false,
     viewModel: PokemonDetailViewModel = org.koin.androidx.compose.koinViewModel(parameters = { org.koin.core.parameter.parametersOf(pokemonId) })
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -116,7 +119,8 @@ fun PokemonDetailScreen(
                 spriteUrl = spriteUrl,
                 paddingValues = paddingValues,
                 sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
+                animatedVisibilityScope = animatedVisibilityScope,
+                isWideLayout = windowWidthSizeClass != WindowWidthSizeClass.Compact && !isInPane
             )
         }
     }
@@ -128,116 +132,194 @@ private fun PokemonDetailContent(
     pokemon: com.pokedata.core.data.model.PokemonDetail,
     spriteUrl: String,
     paddingValues: androidx.compose.foundation.layout.PaddingValues,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    isWideLayout: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    with(sharedTransitionScope) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(paddingValues)
-            .padding(16.dp)
-    ) {
-        // Artwork
-        AsyncImage(
-            model = pokemon.artworkUrl ?: spriteUrl,
-            contentDescription = pokemon.name,
-            modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.CenterHorizontally)
-                .sharedBounds(
-                    rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
-                    animatedVisibilityScope = animatedVisibilityScope
-                )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Types
-        if (pokemon.types.isNotEmpty()) {
-            Text(
-                text = "Types",
-                style = MaterialTheme.typography.titleLarge
+    val imageMod = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+        with(sharedTransitionScope) {
+            Modifier.sharedBounds(
+                rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                animatedVisibilityScope = animatedVisibilityScope
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                pokemon.types.forEach { type ->
-                    TypeBadge(typeName = type.name)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
         }
+    } else {
+        Modifier
+    }
 
-        // Info
+    if (isWideLayout) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = pokemon.height.formatHeight(), style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Height", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = pokemon.weight.formatWeight(), style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Weight", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Description
-        val description = pokemon.description
-        if (!description.isNullOrEmpty()) {
-            Text(text = "About", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        // Abilities
-        if (pokemon.abilities.isNotEmpty()) {
-            Text(text = "Abilities", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            pokemon.abilities.forEach { ability ->
-                Text(
-                    text = ability.name.capitalizeFirst() + if (ability.isHidden) " (Hidden)" else "",
-                    style = MaterialTheme.typography.bodyMedium
+            // Left column: artwork, types, info, description
+            Column(
+                modifier = Modifier.weight(1f).padding(end = 12.dp)
+            ) {
+                AsyncImage(
+                    model = pokemon.artworkUrl ?: spriteUrl,
+                    contentDescription = pokemon.name,
+                    modifier = Modifier
+                        .size(240.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .then(imageMod)
                 )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+                Spacer(modifier = Modifier.height(16.dp))
 
-        // Stats
-        if (pokemon.stats.isNotEmpty()) {
-            Text(text = "Base Stats", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            pokemon.stats.forEach { (statName, value) ->
+                if (pokemon.types.isNotEmpty()) {
+                    Text(text = "Types", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pokemon.types.forEach { type -> TypeBadge(typeName = type.name) }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text(
-                        text = statName.capitalizeFirst(),
-                        modifier = Modifier.weight(0.4f),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "$value",
-                        modifier = Modifier.weight(0.15f),
-                        textAlign = TextAlign.End,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    LinearProgressIndicator(
-                        progress = { value / 255f },
-                        modifier = Modifier.weight(0.45f).height(8.dp)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = pokemon.height.formatHeight(), style = MaterialTheme.typography.bodyLarge)
+                        Text(text = "Height", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = pokemon.weight.formatWeight(), style = MaterialTheme.typography.bodyLarge)
+                        Text(text = "Weight", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val description = pokemon.description
+                if (!description.isNullOrEmpty()) {
+                    Text(text = "About", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
+            // Right column: abilities, stats
+            Column(
+                modifier = Modifier.weight(1f).padding(start = 12.dp)
+            ) {
+                if (pokemon.abilities.isNotEmpty()) {
+                    Text(text = "Abilities", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    pokemon.abilities.forEach { ability ->
+                        Text(
+                            text = ability.name.capitalizeFirst() + if (ability.isHidden) " (Hidden)" else "",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                if (pokemon.stats.isNotEmpty()) {
+                    Text(text = "Base Stats", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    pokemon.stats.forEach { (statName, value) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = statName.capitalizeFirst(), modifier = Modifier.weight(0.35f), style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "$value", modifier = Modifier.weight(0.15f), textAlign = TextAlign.End, style = MaterialTheme.typography.bodyMedium)
+                            LinearProgressIndicator(
+                                progress = { value / 255f },
+                                modifier = Modifier.weight(0.5f).height(8.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
             }
         }
-    }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            AsyncImage(
+                model = pokemon.artworkUrl ?: spriteUrl,
+                contentDescription = pokemon.name,
+                modifier = Modifier
+                    .size(200.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .then(imageMod)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (pokemon.types.isNotEmpty()) {
+                Text(text = "Types", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    pokemon.types.forEach { type -> TypeBadge(typeName = type.name) }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = pokemon.height.formatHeight(), style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "Height", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = pokemon.weight.formatWeight(), style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "Weight", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val description = pokemon.description
+            if (!description.isNullOrEmpty()) {
+                Text(text = "About", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (pokemon.abilities.isNotEmpty()) {
+                Text(text = "Abilities", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                pokemon.abilities.forEach { ability ->
+                    Text(
+                        text = ability.name.capitalizeFirst() + if (ability.isHidden) " (Hidden)" else "",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (pokemon.stats.isNotEmpty()) {
+                Text(text = "Base Stats", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                pokemon.stats.forEach { (statName, value) ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = statName.capitalizeFirst(), modifier = Modifier.weight(0.4f), style = MaterialTheme.typography.bodyMedium)
+                        Text(text = "$value", modifier = Modifier.weight(0.15f), textAlign = TextAlign.End, style = MaterialTheme.typography.bodyMedium)
+                        LinearProgressIndicator(
+                            progress = { value / 255f },
+                            modifier = Modifier.weight(0.45f).height(8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            }
+        }
     }
 }

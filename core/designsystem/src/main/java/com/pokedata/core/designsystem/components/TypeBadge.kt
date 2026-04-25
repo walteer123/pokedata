@@ -31,6 +31,8 @@ fun TypeBadge(
             .padding(horizontal = 12.dp, vertical = 4.dp)
             .semantics { contentDescription = "$typeName type" },
         color = textColor,
-        style = MaterialTheme.typography.labelMedium
+        style = MaterialTheme.typography.labelMedium,
+        maxLines = 1,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Clip
     )
 }

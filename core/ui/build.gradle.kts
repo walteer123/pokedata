@@ -39,8 +39,12 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.adaptive)
+    implementation(libs.androidx.compose.material3.window.size)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.window.core)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

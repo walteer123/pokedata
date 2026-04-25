@@ -59,34 +59,6 @@ fun ModernBottomNav(
     NavigationBar(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surfaceContainer
-    ) {val DefaultNavItems = listOf(
-    NavItem(
-        route = Route.PokemonList,
-        icon = Icons.Default.Home,
-        label = "Pokedex"
-    ),
-    NavItem(
-        route = Route.Search,
-        icon = Icons.Default.Search,
-        label = "Search"
-    ),
-    NavItem(
-        route = Route.Favorites,
-        icon = Icons.Default.Favorite,
-        label = "Favorites"
-    )
-)
-
-@Composable
-fun ModernBottomNav(
-    currentRoute: Route,
-    onNavigate: (Route) -> Unit,
-    modifier: Modifier = Modifier,
-    items: List<NavItem> = DefaultNavItems
-) {
-    NavigationBar(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ) {
         items.forEach { item ->
             val isSelected = currentRoute::class == item.route::class
@@ -111,7 +83,5 @@ fun ModernBottomNav(
                 }
             )
         }
-    }
-}
     }
 }
