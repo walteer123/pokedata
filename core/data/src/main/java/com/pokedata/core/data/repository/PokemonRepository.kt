@@ -12,8 +12,10 @@ import com.pokedata.core.data.local.dao.PokemonDao
 import com.pokedata.core.data.local.dao.PokemonTypeDao
 import com.pokedata.core.data.local.dao.RemoteKeyDao
 import com.pokedata.core.data.local.entity.PokemonEntity
+import androidx.room.withTransaction
 import com.pokedata.core.data.mapper.toAbilityEntities
 import com.pokedata.core.data.mapper.toBaseStatsEntity
+import com.pokedata.core.data.mapper.toPokemonDetail
 import com.pokedata.core.data.mapper.toPokemonEntity
 import com.pokedata.core.data.mapper.toTypeEntities
 import com.pokedata.core.data.model.PokemonDetail
@@ -22,6 +24,8 @@ import com.pokedata.core.data.model.PokemonListItem
 import com.pokedata.core.data.model.PokemonType
 import com.pokedata.core.data.remote.PokemonApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -89,7 +93,7 @@ class PokemonRepository(
 
     override suspend fun getPokemonDetail(id: Int): PokemonDetail = withContext(Dispatchers.IO) {
         val cached = pokemonDao.getPokemonById(id)
-        val needsRefresh = cached == null || isStale(cached.lastUpdated)
+        val needsRefresh = cached == null || isStale(cached.lastUpdated) || cached.height == 0 || cached.weight == 0
 
         if (needsRefresh) {
             fetchAndCachePokemonDetail(id, cached?.isFavorite ?: false)
@@ -99,8 +103,11 @@ class PokemonRepository(
     }
 
     private suspend fun fetchAndCachePokemonDetail(id: Int, currentFavorite: Boolean) {
-        val detail = api.getPokemonDetail(id)
-        val species = api.getPokemonSpecies(id)
+        val (detail, species) = coroutineScope {
+            val detailDeferred = async { api.getPokemonDetail(id) }
+            val speciesDeferred = async { api.getPokemonSpecies(id) }
+            detailDeferred.await() to speciesDeferred.await()
+        }
 
         val englishFlavorText = species.flavorTextEntries
             .firstOrNull { it.language.name == "en" }
@@ -119,13 +126,15 @@ class PokemonRepository(
             isFavorite = currentFavorite
         )
 
-        pokemonDao.insertPokemon(entity)
-        pokemonTypeDao.deleteByPokemonId(id)
-        pokemonTypeDao.insertAll(detail.toTypeEntities())
-        abilityDao.deleteByPokemonId(id)
-        abilityDao.insertAll(detail.toAbilityEntities())
-        baseStatsDao.deleteByPokemonId(id)
-        baseStatsDao.insert(detail.toBaseStatsEntity())
+        database.withTransaction {
+            pokemonDao.insertPokemon(entity)
+            pokemonTypeDao.deleteByPokemonId(id)
+            pokemonTypeDao.insertAll(detail.toTypeEntities())
+            abilityDao.deleteByPokemonId(id)
+            abilityDao.insertAll(detail.toAbilityEntities())
+            baseStatsDao.deleteByPokemonId(id)
+            baseStatsDao.insert(detail.toBaseStatsEntity())
+        }
     }
 
     private suspend fun loadPokemonDetailFromDb(id: Int): PokemonDetail {
@@ -133,40 +142,10 @@ class PokemonRepository(
             ?: throw IllegalStateException("Pokemon $id not found in database")
 
         val types = pokemonTypeDao.getByPokemonId(id)
-            .map { PokemonType(name = it.typeName, slot = it.slot) }
-            .sortedBy { it.slot }
-
         val abilities = abilityDao.getByPokemonId(id)
-            .map { PokemonAbility(name = it.abilityName, isHidden = it.isHidden) }
-
         val baseStats = baseStatsDao.getByPokemonId(id)
-        val stats = if (baseStats != null) {
-            mapOf(
-                "hp" to baseStats.hp,
-                "attack" to baseStats.attack,
-                "defense" to baseStats.defense,
-                "special-attack" to baseStats.specialAttack,
-                "special-defense" to baseStats.specialDefense,
-                "speed" to baseStats.speed
-            )
-        } else {
-            emptyMap()
-        }
 
-        return PokemonDetail(
-            id = entity.id,
-            name = entity.name,
-            height = entity.height,
-            weight = entity.weight,
-            spriteUrl = entity.spriteUrl,
-            artworkUrl = entity.artworkUrl,
-            description = entity.description,
-            genus = entity.genus,
-            types = types,
-            abilities = abilities,
-            stats = stats,
-            isFavorite = entity.isFavorite
-        )
+        return entity.toPokemonDetail(types = types, abilities = abilities, stats = baseStats)
     }
 
     override suspend fun toggleFavorite(id: Int) = withContext(Dispatchers.IO) {

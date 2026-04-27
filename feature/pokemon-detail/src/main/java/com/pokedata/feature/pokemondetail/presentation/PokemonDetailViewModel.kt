@@ -52,7 +52,12 @@ class PokemonDetailViewModel(
     fun toggleFavorite() {
         viewModelScope.launch {
             repository.toggleFavorite(pokemonId)
-            loadPokemonDetail()
+            val current = _uiState.value.pokemon
+            if (current != null) {
+                _uiState.value = _uiState.value.copy(
+                    pokemon = current.copy(isFavorite = !current.isFavorite)
+                )
+            }
         }
     }
 }
