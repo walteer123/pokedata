@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CardDefaults
@@ -42,11 +41,6 @@ val DefaultNavItems = listOf(
         icon = Icons.Default.Search,
         label = "Search"
     ),
-    NavItem(
-        route = Route.Favorites,
-        icon = Icons.Default.Favorite,
-        label = "Favorites"
-    )
 )
 
 @Composable
