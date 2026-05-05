@@ -3,7 +3,9 @@ package com.pokedata.feature.search.presentation
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,7 +39,7 @@ import com.pokedata.core.data.model.PokemonListItem
 import com.pokedata.core.designsystem.components.EmptyState
 import com.pokedata.core.designsystem.components.LoadingIndicator
 import com.pokedata.core.designsystem.components.PokemonCard
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import com.pokedata.core.ui.rememberHingeWidth
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -47,11 +49,12 @@ fun SearchScreen(
     onBackClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    windowWidthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
     viewModel: SearchViewModel = org.koin.androidx.compose.koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusRequester = remember { FocusRequester() }
+    val hingeWidth = rememberHingeWidth()
+    val hasVerticalHinge = hingeWidth > 0.dp
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -131,11 +134,69 @@ fun SearchScreen(
                     subtitle = "Type a name or number to search"
                 )
                 else -> {
-                    val useGrid = windowWidthSizeClass == WindowWidthSizeClass.Medium ||
-                            windowWidthSizeClass == WindowWidthSizeClass.Expanded
-                    if (useGrid) {
+                    if (hasVerticalHinge) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(
+                                count = (uiState.results.size + 1) / 2,
+                                key = { index -> index }
+                            ) { rowIndex ->
+                                val leftIndex = rowIndex * 2
+                                val rightIndex = leftIndex + 1
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(hingeWidth)
+                                ) {
+                                    if (leftIndex < uiState.results.size) {
+                                        val pokemon = uiState.results[leftIndex]
+                                        with(sharedTransitionScope) {
+                                            PokemonCard(
+                                                id = pokemon.id,
+                                                name = pokemon.name,
+                                                number = pokemon.id,
+                                                spriteUrl = pokemon.spriteUrl,
+                                                isFavorite = pokemon.isFavorite,
+                                                onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
+                                                onFavoriteToggle = viewModel::toggleFavorite,
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                                imageModifier = Modifier.sharedBounds(
+                                                    rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                                                    animatedVisibilityScope = animatedVisibilityScope
+                                                )
+                                            )
+                                        }
+                                    }
+                                    if (rightIndex < uiState.results.size) {
+                                        val pokemon = uiState.results[rightIndex]
+                                        with(sharedTransitionScope) {
+                                            PokemonCard(
+                                                id = pokemon.id,
+                                                name = pokemon.name,
+                                                number = pokemon.id,
+                                                spriteUrl = pokemon.spriteUrl,
+                                                isFavorite = pokemon.isFavorite,
+                                                onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
+                                                onFavoriteToggle = viewModel::toggleFavorite,
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                                imageModifier = Modifier.sharedBounds(
+                                                    rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
+                                                    animatedVisibilityScope = animatedVisibilityScope
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
                         LazyVerticalGrid(
-                            columns = GridCells.Adaptive(160.dp),
+                            columns = GridCells.Fixed(3),
                             modifier = Modifier.fillMaxSize()
                         ) {
                             items(
@@ -153,31 +214,6 @@ fun SearchScreen(
                                         onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
                                         onFavoriteToggle = viewModel::toggleFavorite,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                        imageModifier = Modifier.sharedBounds(
-                                            rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
-                                            animatedVisibilityScope = animatedVisibilityScope
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    } else {
-                        LazyColumn {
-                            items(
-                                count = uiState.results.size,
-                                key = { index -> uiState.results[index].id }
-                            ) { index ->
-                                val pokemon = uiState.results[index]
-                                with(sharedTransitionScope) {
-                                    PokemonCard(
-                                        id = pokemon.id,
-                                        name = pokemon.name,
-                                        number = pokemon.id,
-                                        spriteUrl = pokemon.spriteUrl,
-                                        isFavorite = pokemon.isFavorite,
-                                        onClick = { onPokemonClick(pokemon.id, pokemon.spriteUrl ?: "", pokemon.name) },
-                                        onFavoriteToggle = viewModel::toggleFavorite,
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                         imageModifier = Modifier.sharedBounds(
                                             rememberSharedContentState(key = "pokemon-image-${pokemon.id}"),
                                             animatedVisibilityScope = animatedVisibilityScope

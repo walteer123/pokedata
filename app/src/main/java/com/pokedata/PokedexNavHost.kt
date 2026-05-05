@@ -104,8 +104,7 @@ fun PokedexNavHost(
                                         }
                                     },
                                     sharedTransitionScope = this@SharedTransitionLayout,
-                                    animatedVisibilityScope = this@composable,
-                                    windowWidthSizeClass = windowWidthSizeClass
+                                    animatedVisibilityScope = this@composable
                                 )
                             }
                             HorizontalDivider(modifier = Modifier.width(1.dp))
@@ -159,8 +158,7 @@ fun PokedexNavHost(
                                     }
                                 },
                                 sharedTransitionScope = this@SharedTransitionLayout,
-                                animatedVisibilityScope = this@composable,
-                                windowWidthSizeClass = windowWidthSizeClass
+                                animatedVisibilityScope = this@composable
                             )
                         }
                     }
@@ -206,8 +204,7 @@ fun PokedexNavHost(
                                     navController.popBackStack()
                                 },
                                 sharedTransitionScope = this@SharedTransitionLayout,
-                                animatedVisibilityScope = this@composable,
-                                windowWidthSizeClass = windowWidthSizeClass
+                                animatedVisibilityScope = this@composable
                             )
                         }
                     }

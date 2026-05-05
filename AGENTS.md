@@ -1,6 +1,6 @@
 ﻿# pokedata Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-25
+Auto-generated from all feature plans. Last updated: 2026-05-04
 
 ## Active Technologies
 - Kotlin 2.0.21 + Jetpack Compose (BOM 2025.03.01), Material 3, Koin 3.5.6, Navigation Compose 2.9.0, Coil 2.7.0, Paging 3 (002-update-design-system)
@@ -31,9 +31,9 @@ tests/
 Kotlin 2.0+: Follow standard conventions
 
 ## Recent Changes
+- 006-foldable-hinge-avoidance: Added Kotlin (latest stable) + Jetpack Compose, Koin, Retrofit, Room, Coil, Paging 3, Navigation Compose
 - 005-adaptive-layout: Added Kotlin 2.0.21 + Jetpack Compose (BOM 2025.03.01), Material 3 1.4.0, material3-adaptive-navigation-suite 1.5.0-alpha16, Navigation Compose 2.9.0, Koin 3.5.6, Coil 2.7.0, Paging 3
 - main: Added Kotlin (latest stable) + Jetpack Compose, Koin, Retrofit, Room, Coil, Paging 3, Navigation Compose
-- 004-search-bar-animation: Added `SearchBarCompact` component with sharedBounds transition, auto-focus on SearchScreen, slide/fade navigation transitions for Search route
 
 
 <!-- MANUAL ADDITIONS START -->

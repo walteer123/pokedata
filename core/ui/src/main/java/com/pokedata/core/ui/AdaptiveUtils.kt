@@ -2,12 +2,15 @@ package com.pokedata.core.ui
 
 import android.app.Activity
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
@@ -28,4 +31,16 @@ fun rememberFoldingFeatures(): List<FoldingFeature> {
         .collectAsState(initial = WindowLayoutInfo(emptyList()))
 
     return windowLayoutInfo.displayFeatures.filterIsInstance<FoldingFeature>()
+}
+
+@Composable
+fun rememberHingeWidth(): Dp {
+    val foldingFeatures = rememberFoldingFeatures()
+    val density = LocalDensity.current
+    val hinge = foldingFeatures.firstOrNull()
+    return if (hinge?.orientation == FoldingFeature.Orientation.VERTICAL) {
+        with(density) { hinge.bounds.width().toDp() }
+    } else {
+        0.dp
+    }
 }
